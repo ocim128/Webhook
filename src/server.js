@@ -3,7 +3,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const getRawBody = require('raw-body');
-const { WebhookStore } = require('./store');
+const { createWebhookStore } = require('./store');
 
 const PORT = process.env.PORT || 4000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -18,13 +18,19 @@ const RESERVED_PATHS = new Set([
 ]);
 const MAX_SLUG_LENGTH = 64;
 const MIN_SLUG_LENGTH = 2;
+const ADMIN_ACCESS_TOKEN = (process.env.ADMIN_ACCESS || '').trim();
+const ADMIN_ACCESS_SLUG = ADMIN_ACCESS_TOKEN ? normaliseSlug(ADMIN_ACCESS_TOKEN) : '';
 
 async function bootstrap() {
   const app = express();
-  const store = new WebhookStore(
-    path.join(__dirname, '..', 'data', 'registry.json'),
-    { logLimit: Number(process.env.WEBHOOK_LOG_LIMIT || 50) },
-  );
+  const logLimit = Number(process.env.WEBHOOK_LOG_LIMIT || 50);
+  const store = createWebhookStore({
+    mongoUri: process.env.MONGODB_URI,
+    mongoDbName: process.env.MONGODB_DB_NAME,
+    mongoCollection: process.env.MONGODB_COLLECTION,
+    filePath: path.join(__dirname, '..', 'data', 'registry.json'),
+    logLimit,
+  });
 
   await store.init();
 
@@ -44,21 +50,26 @@ async function bootstrap() {
     res.sendFile(indexFile);
   });
 
-  app.get('/meta', (req, res) => {
-    res.json({
-      name: 'Local Webhook Relay',
-      ready: true,
-      management: {
-        list: `${req.protocol}://${req.get('host')}/webhooks`,
-        create: `${req.protocol}://${req.get('host')}/webhooks`,
-        detail: `${req.protocol}://${req.get('host')}/webhooks/:slug`,
-      },
-      dynamicEndpointExample: `${req.protocol}://${req.get('host')}/email1`,
-      note:
-        'Create a slug under /webhooks first, then send any request to /:slug or /hooks/:slug to have it captured.',
-      stats: store.getStats(),
-    });
-  });
+  app.get(
+    '/meta',
+    asyncHandler(async (req, res) => {
+      const stats = await store.getStats();
+      res.json({
+        name: 'Local Webhook Relay',
+        ready: true,
+        adminProtected: Boolean(ADMIN_ACCESS_TOKEN),
+        management: {
+          list: `${req.protocol}://${req.get('host')}/webhooks`,
+          create: `${req.protocol}://${req.get('host')}/webhooks`,
+          detail: `${req.protocol}://${req.get('host')}/webhooks/:slug`,
+        },
+        dynamicEndpointExample: `${req.protocol}://${req.get('host')}/email1`,
+        note:
+          'Create a slug under /webhooks first, then send any request to /:slug or /hooks/:slug to have it captured.',
+        stats,
+      });
+    }),
+  );
 
   app.get('/health', (_req, res) => {
     res.json({ ok: true, timestamp: new Date().toISOString() });
@@ -76,28 +87,42 @@ async function bootstrap() {
   const managementRouter = express.Router();
   managementRouter.use(express.json({ limit: '1mb' }));
 
-  managementRouter.get('/', (_req, res) => {
-    res.json({ items: store.listHooks() });
-  });
+  managementRouter.get(
+    '/',
+    enforceAdminAccess,
+    asyncHandler(async (_req, res) => {
+      const items = await store.listHooks();
+      res.json({ items });
+    }),
+  );
 
-  managementRouter.get('/recent', (req, res) => {
-    const limit = Math.max(1, Math.min(Number(req.query.limit) || 20, 100));
-    res.json({ items: store.listRecentEntries(limit) });
-  });
+  managementRouter.get(
+    '/recent',
+    asyncHandler(async (req, res) => {
+      const limit = Math.max(1, Math.min(Number(req.query.limit) || 20, 100));
+      const items = await store.listRecentEntries(limit);
+      res.json({ items });
+    }),
+  );
 
-  managementRouter.get('/stats', (_req, res) => {
-    res.json({ stats: store.getStats() });
-  });
+  managementRouter.get(
+    '/stats',
+    asyncHandler(async (_req, res) => {
+      const stats = await store.getStats();
+      res.json({ stats });
+    }),
+  );
 
-  managementRouter.post('/', async (req, res, next) => {
-    try {
+  managementRouter.post(
+    '/',
+    asyncHandler(async (req, res) => {
       const { slug, description = '', metadata = {} } = req.body || {};
       const normalisedSlug = normaliseSlug(slug);
       validateSlug(normalisedSlug);
       ensureMetadata(metadata);
       guardReservedSlug(normalisedSlug);
 
-      const existing = store.getHook(normalisedSlug);
+      const existing = await store.getHook(normalisedSlug);
       if (existing) {
         return res.status(200).json({
           hook: existing,
@@ -117,40 +142,50 @@ async function bootstrap() {
         endpoint: buildHookUrl(req, normalisedSlug),
         alreadyExisted: false,
       });
-    } catch (err) {
-      next(err);
-    }
-  });
+    }),
+  );
 
-  managementRouter.get('/:slug', (req, res) => {
-    const slug = normaliseSlug(req.params.slug);
-    const hook = store.getHook(slug);
-    if (!hook) {
-      return res.status(404).json({ error: `Webhook "${slug}" not found.` });
-    }
+  managementRouter.get(
+    '/:slug',
+    asyncHandler(async (req, res) => {
+      const rawSlug = req.params.slug || '';
+      const slug = normaliseSlug(rawSlug);
+      const isAdminSlug = ADMIN_ACCESS_SLUG && slug && slug === ADMIN_ACCESS_SLUG;
+      if (isAdminSlug) {
+        const hooks = await store.listHooks();
+        return res.json({ admin: true, hooks });
+      }
 
-    return res.json({ hook });
-  });
+      const hook = await store.getHook(slug);
+      if (!hook) {
+        return res.status(404).json({ error: `Webhook "${slug}" not found.` });
+      }
 
-  managementRouter.delete('/:slug', async (req, res) => {
-    const slug = normaliseSlug(req.params.slug);
-    const deleted = await store.deleteHook(slug);
-    if (!deleted) {
-      return res.status(404).json({ error: `Webhook "${slug}" not found.` });
-    }
+      return res.json({ hook });
+    }),
+  );
 
-    return res.json({ deleted: true, slug });
-  });
+  managementRouter.delete(
+    '/:slug',
+    asyncHandler(async (req, res) => {
+      const slug = normaliseSlug(req.params.slug);
+      const deleted = await store.deleteHook(slug);
+      if (!deleted) {
+        return res.status(404).json({ error: `Webhook "${slug}" not found.` });
+      }
 
-  managementRouter.post('/:slug/reset', async (req, res, next) => {
-    try {
+      return res.json({ deleted: true, slug });
+    }),
+  );
+
+  managementRouter.post(
+    '/:slug/reset',
+    asyncHandler(async (req, res) => {
       const slug = normaliseSlug(req.params.slug);
       const hook = await store.clearLogs(slug);
       res.json({ reset: true, hook });
-    } catch (err) {
-      next(err);
-    }
-  });
+    }),
+  );
 
   app.use('/webhooks', managementRouter);
 
@@ -255,8 +290,12 @@ function createDynamicHandler(store) {
       });
     }
 
-    const hook = store.getHook(slug);
-    let targetHook = hook;
+    let targetHook;
+    try {
+      targetHook = await store.getHook(slug);
+    } catch (err) {
+      return next(err);
+    }
     if (!targetHook) {
       try {
         targetHook = await store.createHook({
@@ -291,6 +330,25 @@ function createDynamicHandler(store) {
     } catch (err) {
       return next(err);
     }
+  };
+}
+
+function enforceAdminAccess(req, res, next) {
+  if (!ADMIN_ACCESS_TOKEN) {
+    return next();
+  }
+
+  const token = (req.get('x-admin-access') || req.query.admin || '').trim();
+  if (token && token === ADMIN_ACCESS_TOKEN) {
+    return next();
+  }
+
+  return res.status(401).json({ error: 'Admin access token required.' });
+}
+
+function asyncHandler(fn) {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
   };
 }
 

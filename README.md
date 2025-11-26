@@ -68,6 +68,24 @@ curl -X POST http://localhost:4000/email1 \
 
 You will receive a confirmation response while the raw POST body is stored locally under `data/registry.json` (headers and query strings are intentionally discarded). The service keeps the latest 50 deliveries per slug by default (configure via `WEBHOOK_LOG_LIMIT`). Open `http://localhost:4000/email1` in your browser at any time to see the live list of payloads for that slug.
 
+### Using MongoDB storage
+
+Set `MONGODB_URI` to switch persistence from the local JSON file to MongoDB. Optional overrides:
+
+- `MONGODB_DB_NAME` – Database name (defaults to `webhook-relay`).
+- `MONGODB_COLLECTION` – Collection that stores slugs/logs (defaults to `hooks`).
+
+When `MONGODB_URI` is present the service automatically initializes the Mongo-backed store (the file fallback is still available for local-only runs). To prepare MongoDB for the app:
+
+1. Provision a MongoDB deployment (MongoDB Atlas, Render, ScaleGrid, etc.) and copy the connection string.
+2. Ensure the user in that connection string has read/write access to the target database.
+3. Set `MONGODB_URI`, `MONGODB_DB_NAME`, and `MONGODB_COLLECTION` (optional) in your local `.env`, Render dashboard, or deployment platform.
+4. Restart the server. It will create a unique index on `slug` automatically and begin persisting webhooks/logs to the specified collection.
+
+### Locking down management endpoints
+
+Set `ADMIN_ACCESS` to any secret string to protect the `/webhooks` listing endpoint (the one that reveals every registered slug). When enabled, only requests that include the token via the `x-admin-access` header or a `?admin=token` query string can see that list. You can also visit `http://<host>/<ADMIN_ACCESS>` in the browser to open an admin overview of every slug. All other slug-specific actions stay public for easier testing; rotate or remove the token if it ever leaks.
+
 ### Health & base info
 
 - `GET /meta` returns basic usage metadata.
@@ -78,5 +96,5 @@ You will receive a confirmation response while the raw POST body is stored local
 
 ### Next steps for deployment
 
-- Swap the `WebhookStore` implementation with a MongoDB-backed variant while keeping the same API contract.
+- Configure `MONGODB_URI` (and related options) plus `PUBLIC_HOST`/`PORT` on Render so the service writes directly to hosted MongoDB storage.
 - Deploy the Express app to Render (or any Node host) and update DNS/webhook senders to target the hosted URL.
