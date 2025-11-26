@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x",
+      "memory": 512,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/(.*)", "destination": "/api/index.js" }
+  ]
+}
