@@ -98,3 +98,4 @@ Set `ADMIN_ACCESS` to any secret string to protect the `/webhooks` listing endpo
 
 - Configure `MONGODB_URI` (and related options) plus `PUBLIC_HOST`/`PORT` on Render so the service writes directly to hosted MongoDB storage.
 - Deploy the Express app to Render (or any Node host) and update DNS/webhook senders to target the hosted URL.
+- Deploying to Vercel? Use the provided `api/index.js` serverless bridge and make sure your project is configured as a Node/Express app (Vercel will automatically route `/api` requests). Set the same environment variables in Vercel’s dashboard.

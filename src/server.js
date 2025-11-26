@@ -21,7 +21,7 @@ const MIN_SLUG_LENGTH = 2;
 const ADMIN_ACCESS_TOKEN = (process.env.ADMIN_ACCESS || '').trim();
 const ADMIN_ACCESS_SLUG = ADMIN_ACCESS_TOKEN ? normaliseSlug(ADMIN_ACCESS_TOKEN) : '';
 
-async function bootstrap() {
+async function createApp() {
   const app = express();
   const logLimit = Number(process.env.WEBHOOK_LOG_LIMIT || 50);
   const store = createWebhookStore({
@@ -205,11 +205,7 @@ async function bootstrap() {
     });
   });
 
-  app.listen(PORT, HOST, () => {
-    console.log(
-      `Webhook server listening on http://${HOST}:${PORT} (open http://${DISPLAY_HOST}:${PORT}/ in your browser)`,
-    );
-  });
+  return app;
 }
 
 function buildHookUrl(req, slug) {
@@ -398,6 +394,16 @@ function summarisePayload(rawBody) {
   };
 }
 
+async function bootstrap() {
+  const app = await createApp();
+  app.listen(PORT, HOST, () => {
+    console.log(
+      `Webhook server listening on http://${HOST}:${PORT} (open http://${DISPLAY_HOST}:${PORT}/ in your browser)`,
+    );
+  });
+  return app;
+}
+
 if (require.main === module) {
   bootstrap().catch((err) => {
     console.error('Failed to start server', err);
@@ -405,4 +411,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { bootstrap };
+module.exports = { createApp, bootstrap };
