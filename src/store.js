@@ -1,7 +1,13 @@
 const fs = require('fs/promises');
 const path = require('path');
+const crypto = require('crypto');
 const { MongoClient } = require('mongodb');
-const { nanoid } = require('nanoid');
+
+function generateId(length = 10) {
+  const bytes = crypto.randomBytes(length * 2);
+  const id = bytes.toString('base64url').slice(0, length);
+  return id.length >= length ? id : generateId(length);
+}
 
 class FileWebhookStore {
   constructor(filePath, options = {}) {
@@ -80,7 +86,7 @@ class FileWebhookStore {
     }
 
     const hook = {
-      id: nanoid(10),
+      id: generateId(10),
       slug,
       description,
       metadata,
@@ -297,7 +303,7 @@ class MongoWebhookStore {
 
   async createHook({ slug, description = '', metadata = {} }) {
     const hook = {
-      id: nanoid(10),
+      id: generateId(10),
       slug,
       description,
       metadata,
