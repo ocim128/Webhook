@@ -236,10 +236,28 @@ function renderLogs(logs) {
   logsCache.forEach((log) => {
     const item = document.createElement('button');
     item.type = 'button';
-    item.className = `log-item${log.id === activeLogId ? ' active' : ''}`;
+    const emailPayload = extractEmailPayload(log);
+    const badge = buildLogBadge(log, emailPayload);
+    const preview = buildLogPreview(log, emailPayload);
+    const infoLine = buildLogInfoLine(log);
+    item.className = `log-item ${badge.variant}${log.id === activeLogId ? ' active' : ''}`;
+    const label = deriveLogLabel(log);
     item.innerHTML = `
-      <strong>${log.isJson ? 'JSON payload' : 'POST payload'}</strong>
-      <small>${formatTimestamp(log.timestamp)} · ${formatBytes(log.byteSize || 0)}</small>
+      <span class="log-item-timeline" aria-hidden="true">
+        <span class="log-item-dot"></span>
+      </span>
+      <span class="log-item-content">
+        <span class="log-item-row">
+          <span class="log-item-title">${escapeHtml(label)}</span>
+          <span class="chip ${badge.variant}">${badge.label}</span>
+        </span>
+        <small class="log-item-subline">${escapeHtml(infoLine)}</small>
+        ${
+          preview
+            ? `<p class="log-preview">${escapeHtml(preview)}</p>`
+            : ''
+        }
+      </span>
     `;
     item.addEventListener('click', () => selectLog(log.id));
     logListEl.appendChild(item);
@@ -268,14 +286,76 @@ function renderLogDetail(log) {
     return;
   }
 
-  logDetailEl.innerHTML = `
-    <div class="log-detail-meta">
-      <span>${formatTimestamp(log.timestamp)}</span>
-      <span>${formatBytes(log.byteSize || 0)}</span>
-      ${log.isJson ? '<span class="tag">JSON</span>' : ''}
+  const emailPayload = extractEmailPayload(log);
+  const badge = buildLogBadge(log, emailPayload);
+  const participants = buildLogParticipants(log);
+  const sublineParts = [formatBytes(log.byteSize || 0)];
+  if (log.id) {
+    sublineParts.push(`Ref ${log.id}`);
+  }
+  if (participants) {
+    sublineParts.push(participants);
+  }
+  const rawBody = (log.formatted || log.body || '').trim();
+  const copyButton =
+    rawBody.length > 0
+      ? '<button type="button" class="ghost small copy-payload">Copy body</button>'
+      : '';
+  const detailHeader = `
+    <div class="log-detail-top">
+      <div>
+        <div class="log-detail-time">${formatTimestamp(log.timestamp)}</div>
+        <div class="log-detail-subline">${escapeHtml(sublineParts.join(' · '))}</div>
+      </div>
+      <div class="log-detail-actions">
+        <span class="chip ${badge.variant}">${badge.label}</span>
+        ${copyButton}
+      </div>
     </div>
-    <pre>${(log.formatted || log.body || '').trim() || '(empty body)'}</pre>
   `;
+
+  if (emailPayload) {
+    logDetailEl.innerHTML = `
+      ${detailHeader}
+      <div class="email-overview">
+        <div class="email-meta">
+          <div><strong>From:</strong> ${escapeHtml(emailPayload.from || 'Unknown')}</div>
+          <div><strong>To:</strong> ${escapeHtml(emailPayload.to || 'Unknown')}</div>
+          <div><strong>Subject:</strong> ${escapeHtml(emailPayload.subject || '(no subject)')}</div>
+          <div><strong>Date:</strong> ${emailPayload.date ? formatTimestamp(emailPayload.date) : '-'}</div>
+        </div>
+        ${
+          emailPayload.htmlBody
+            ? `<div class="email-preview"><iframe sandbox="allow-same-origin" srcdoc="${encodeSrcDoc(
+                emailPayload.htmlBody,
+              )}"></iframe></div>`
+            : ''
+        }
+        <div class="email-body">
+          <div class="email-body-section">
+            <div class="label">HTML</div>
+            <pre>${escapeHtml(emailPayload.htmlBody || '(no html body)')}</pre>
+          </div>
+          <div class="email-body-section">
+            <div class="label">Plain Text</div>
+            <pre>${escapeHtml(emailPayload.plainBody || '(no plain body)')}</pre>
+          </div>
+        </div>
+      </div>
+      <details class="raw-json">
+        <summary>View raw JSON payload</summary>
+        <pre>${escapeHtml(rawBody || '(empty body)')}</pre>
+      </details>
+    `;
+    setupLogDetailActions(rawBody);
+    return;
+  }
+
+  logDetailEl.innerHTML = `
+    ${detailHeader}
+    <pre>${escapeHtml(rawBody || '(empty body)')}</pre>
+  `;
+  setupLogDetailActions(rawBody);
 }
 
 async function resetWebhook(slug) {
@@ -437,4 +517,156 @@ function attachCopyHandlers() {
       }
     };
   });
+}
+
+function deriveLogLabel(log) {
+  if (!log) return 'POST payload';
+  const subject = extractSubjectFromLog(log);
+  if (subject) {
+    return subject;
+  }
+  return log.isJson ? 'JSON payload' : 'POST payload';
+}
+
+function buildLogPreview(log, emailPayload = null) {
+  const email = emailPayload || extractEmailPayload(log);
+  const previewSource =
+    email?.plainBody || email?.htmlBody || log.bodyPreview || log.body || '';
+  return truncateText(compactWhitespace(previewSource || ''), 140);
+}
+
+function buildLogInfoLine(log) {
+  const parts = [formatTimestamp(log.timestamp), formatBytes(log.byteSize || 0)];
+  const participants = buildLogParticipants(log);
+  if (participants) {
+    parts.push(participants);
+  }
+  return parts.join(' · ');
+}
+
+function buildLogBadge(log, emailPayload = null) {
+  if (emailPayload || extractEmailPayload(log)) {
+    return { label: 'Email JSON', variant: 'chip-mail' };
+  }
+  if (log.isJson) {
+    return { label: 'JSON', variant: 'chip-json' };
+  }
+  return { label: 'Plain POST', variant: 'chip-plain' };
+}
+
+function buildLogParticipants(log) {
+  const data = parseLogJson(log);
+  if (!data || typeof data !== 'object') {
+    return '';
+  }
+  const from = data.from || data.sender || data.source || '';
+  const to = data.to || data.recipient || '';
+  if (from && to) {
+    return `${from} -> ${to}`;
+  }
+  if (from) {
+    return `From ${from}`;
+  }
+  if (to) {
+    return `To ${to}`;
+  }
+  return '';
+}
+
+function truncateText(value, maxLength = 120) {
+  if (!value) return '';
+  if (value.length <= maxLength) {
+    return value;
+  }
+  return `${value.slice(0, maxLength - 3)}...`;
+}
+
+function compactWhitespace(value) {
+  if (!value) {
+    return '';
+  }
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function extractSubjectFromLog(log) {
+  const data = parseLogJson(log);
+  if (!data || typeof data !== 'object') {
+    return '';
+  }
+  const subject = typeof data.subject === 'string' ? data.subject.trim() : '';
+  return subject;
+}
+
+function parseLogJson(log) {
+  if (!log?.isJson) {
+    return null;
+  }
+  if (Object.prototype.hasOwnProperty.call(log, '__parsedPayload')) {
+    return log.__parsedPayload;
+  }
+  const raw = log.body || log.formatted;
+  if (!raw) {
+    log.__parsedPayload = null;
+    return null;
+  }
+  try {
+    log.__parsedPayload = JSON.parse(raw);
+  } catch (err) {
+    log.__parsedPayload = null;
+  }
+  return log.__parsedPayload;
+}
+
+function extractEmailPayload(log) {
+  const data = parseLogJson(log);
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+  const hasEmailShape =
+    (data?.plainBody || data?.htmlBody) && (data?.subject || data?.from || data?.to);
+  if (!hasEmailShape) {
+    return null;
+  }
+  return {
+    from: data.from,
+    to: data.to,
+    subject: data.subject,
+    date: data.date,
+    plainBody: data.plainBody,
+    htmlBody: data.htmlBody,
+  };
+}
+
+function setupLogDetailActions(rawBody) {
+  const copyBtn = logDetailEl.querySelector('.copy-payload');
+  if (!copyBtn || !rawBody) {
+    return;
+  }
+  copyBtn.addEventListener('click', () => copyPayload(rawBody));
+}
+
+async function copyPayload(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    statusBadge.textContent = 'Copied payload to clipboard';
+    setTimeout(() => updateStatusBadge(true), 1500);
+  } catch (err) {
+    alert('Copy failed, please copy manually.');
+  }
+}
+
+function escapeHtml(value) {
+  if (!value && value !== 0) return '';
+  return value
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function encodeSrcDoc(html) {
+  if (!html) return '';
+  return escapeHtml(html);
 }
