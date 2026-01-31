@@ -1,117 +1,138 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Local Webhook Relay</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
-    <div class="aurora"></div>
-    <div class="shell">
-      <header>
-        <div>
-          <h1>Local Webhook Relay</h1>
-          <p>Manage dynamic webhook parameters and inspect deliveries.</p>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local Webhook Relay</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <div class="aurora"></div>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Local Webhook Relay</h1>
+        <p>Manage dynamic webhook parameters and inspect deliveries.</p>
+      </div>
+      <div class="status" id="status-badge">Loading…</div>
+    </header>
+
+    <main>
+      <section class="card" id="home-view">
+        <div class="home-grid">
+          <div class="home-intro">
+            <h2>Claim a webhook parameter</h2>
+            <p class="intro">
+              Pick any username and we'll start listening for POST requests on
+              <code>http://localhost:4000/&lt;slug&gt;</code>. Paste the link into
+              your integrations and visit the same path in the browser to watch payloads roll in.
+            </p>
+            <form id="create-form" class="pill-form">
+              <label>
+                Username / Slug
+                <input type="text" id="slug" name="slug" placeholder="username123" minlength="2" maxlength="64"
+                  required />
+              </label>
+              <button type="submit">Open Dashboard</button>
+            </form>
+
+            <div class="home-instructions">
+              <h3>How it works</h3>
+              <ol>
+                <li>Claim a slug here (or just start POSTing to it).</li>
+                <li>Fire POST requests to <code>http://localhost:4000/&lt;slug&gt;</code>.</li>
+                <li>Visit the same path in your browser to inspect, reset, or delete.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="home-stats">
+            <div class="stat-card">
+              <div class="label">Registered</div>
+              <div class="stat-value" id="stat-total-hooks">-</div>
+              <small>Total usernames claimed</small>
+            </div>
+            <div class="stat-card">
+              <div class="label">Payload hits</div>
+              <div class="stat-value" id="stat-total-hits">-</div>
+              <small>All-time captured posts</small>
+            </div>
+            <div class="stat-card">
+              <div class="label">Last delivery</div>
+              <div class="stat-value" id="stat-last-hit">-</div>
+              <small>Across any slug</small>
+            </div>
+            <div class="stat-card">
+              <div class="label">24h volume</div>
+              <div class="stat-value" id="stat-last24h">-</div>
+              <small>Payloads in past 24 hours</small>
+            </div>
+          </div>
         </div>
-        <div class="status" id="status-badge">Loading…</div>
-      </header>
+      </section>
 
-      <main>
-        <section class="card" id="home-view">
-          <div class="home-grid">
-            <div class="home-intro">
-              <h2>Claim a webhook parameter</h2>
-              <p class="intro">
-                Pick any username and we'll start listening for POST requests on
-                <code>http://localhost:4000/&lt;slug&gt;</code>. Paste the link into
-                your integrations and visit the same path in the browser to watch payloads roll in.
-              </p>
-              <form id="create-form" class="pill-form">
-                <label>
-                  Username / Slug
-                  <input
-                    type="text"
-                    id="slug"
-                    name="slug"
-                    placeholder="username123"
-                    minlength="2"
-                    maxlength="64"
-                    required
-                  />
-                </label>
-                <button type="submit">Open Dashboard</button>
-              </form>
-
-              <div class="home-instructions">
-                <h3>How it works</h3>
-                <ol>
-                  <li>Claim a slug here (or just start POSTing to it).</li>
-                  <li>Fire POST requests to <code>http://localhost:4000/&lt;slug&gt;</code>.</li>
-                  <li>Visit the same path in your browser to inspect, reset, or delete.</li>
-                </ol>
-              </div>
-            </div>
-
-            <div class="home-stats">
-              <div class="stat-card">
-                <div class="label">Registered</div>
-                <div class="stat-value" id="stat-total-hooks">-</div>
-                <small>Total usernames claimed</small>
-              </div>
-              <div class="stat-card">
-                <div class="label">Payload hits</div>
-                <div class="stat-value" id="stat-total-hits">-</div>
-                <small>All-time captured posts</small>
-              </div>
-              <div class="stat-card">
-                <div class="label">Last delivery</div>
-                <div class="stat-value" id="stat-last-hit">-</div>
-                <small>Across any slug</small>
-              </div>
-              <div class="stat-card">
-                <div class="label">24h volume</div>
-                <div class="stat-value" id="stat-last24h">-</div>
-                <small>Payloads in past 24 hours</small>
-              </div>
+      <section class="card hidden" id="slug-view">
+        <div class="slug-hero">
+          <div>
+            <p class="slug-path">Live capture for <span id="slug-title"></span></p>
+            <div id="slug-summary">
+              <p>Select a webhook by visiting <code>/&lt;slug&gt;</code>.</p>
             </div>
           </div>
-        </section>
+          <div class="slug-actions">
+            <button id="logs-refresh" class="ghost">Refresh</button>
+            <button id="back-home" class="ghost">← Home</button>
+            <button id="reset-slug" class="ghost">Reset Logs</button>
+            <button id="delete-slug" class="danger">Delete</button>
+          </div>
+        </div>
 
-        <section class="card hidden" id="slug-view">
-          <div class="slug-hero">
-            <div>
-              <p class="slug-path">Live capture for <span id="slug-title"></span></p>
-              <div id="slug-summary">
-                <p>Select a webhook by visiting <code>/&lt;slug&gt;</code>.</p>
-              </div>
+        <div class="logs-panel">
+          <div class="logs-header">
+            <h3>Deliveries timeline</h3>
+            <p>Only POST payloads are stored. Newest entries appear first.</p>
+          </div>
+          <div class="search-filter-bar">
+            <div class="search-input-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" class="search-input" id="search-input" placeholder="Search emails..." />
+              <button type="button" class="search-clear" id="search-clear">&times;</button>
             </div>
-            <div class="slug-actions">
-              <button id="logs-refresh" class="ghost">Refresh</button>
-              <button id="back-home" class="ghost">← Home</button>
-              <button id="reset-slug" class="ghost">Reset Logs</button>
-              <button id="delete-slug" class="danger">Delete</button>
+            <div class="filter-chips">
+              <button type="button" class="filter-chip active" data-filter="all">All</button>
+              <button type="button" class="filter-chip chip-mail" data-filter="email">Email</button>
+              <button type="button" class="filter-chip chip-json" data-filter="json">JSON</button>
+            </div>
+            <span class="search-stats" id="search-stats"></span>
+          </div>
+          <div class="logs-split">
+            <div id="log-list" class="log-list">
+              <p>No payloads yet. Send a POST request to this slug.</p>
+            </div>
+            <div id="log-detail" class="log-detail">
+              <p>Select a payload from the list to inspect its body.</p>
             </div>
           </div>
-
-          <div class="logs-panel">
-            <div class="logs-header">
-              <h3>Deliveries timeline</h3>
-              <p>Only POST payloads are stored. Newest entries appear first.</p>
-            </div>
-            <div class="logs-split">
-              <div id="log-list" class="log-list">
-                <p>No payloads yet. Send a POST request to this slug.</p>
-              </div>
-              <div id="log-detail" class="log-detail">
-                <p>Select a payload from the list to inspect its body.</p>
-              </div>
-            </div>
+          <div class="keyboard-hints">
+            <span class="keyboard-hint"><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+            <span class="keyboard-hint"><kbd>j</kbd><kbd>k</kbd> Vim style</span>
+            <span class="keyboard-hint"><kbd>Enter</kbd> Select</span>
+            <span class="keyboard-hint"><kbd>r</kbd> Refresh</span>
+            <span class="keyboard-hint"><kbd>/</kbd> Search</span>
+            <span class="keyboard-hint"><kbd>Esc</kbd> Clear</span>
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-    <script src="/app.js" type="module"></script>
-  </body>
+  <script src="/js/app.js" type="module"></script>
+</body>
+
 </html>

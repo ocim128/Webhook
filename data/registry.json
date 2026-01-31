@@ -6,9 +6,36 @@
       "description": "test",
       "metadata": {},
       "createdAt": "2025-11-25T12:05:49.053Z",
-      "lastHit": "2025-11-25T14:56:10.909Z",
-      "hits": 8,
+      "lastHit": "2025-11-26T03:09:36.297Z",
+      "hits": 11,
       "logs": [
+        {
+          "id": "miffey09",
+          "timestamp": "2025-11-26T03:09:36.297Z",
+          "body": "atat2",
+          "bodyPreview": "atat2",
+          "formatted": null,
+          "isJson": false,
+          "byteSize": 5
+        },
+        {
+          "id": "miffb1vl",
+          "timestamp": "2025-11-26T03:06:34.689Z",
+          "body": "atat",
+          "bodyPreview": "atat",
+          "formatted": null,
+          "isJson": false,
+          "byteSize": 4
+        },
+        {
+          "id": "mieqzsop",
+          "timestamp": "2025-11-25T15:45:58.777Z",
+          "body": "this%20is%20test%20messagethis%20is%20also%20test%20message%20this%20is%20test%20message%20this%20is%20also%20test%20message%20this%20is%20test%20message%20this%20is%20also%20test%20message%20this%20is%20test%20message%20this%20is%20also%20test%20message%20",
+          "bodyPreview": "this%20is%20test%20messagethis%20is%20also%20test%20message%20this%20is%20test%20message%20this%20is%20also%20test%20message%20this%20is%20test%20message%20this%20is%20also%20test%20message%20this%20is%20test%20message%20this%20is%20also%20test%20message%20",
+          "formatted": null,
+          "isJson": false,
+          "byteSize": 257
+        },
         {
           "id": "miep7r8d",
           "timestamp": "2025-11-25T14:56:10.909Z",
@@ -73,6 +100,83 @@
       "description": "",
       "metadata": {},
       "createdAt": "2025-11-25T14:42:58.212Z",
+      "lastHit": null,
+      "hits": 0,
+      "logs": []
+    },
+    "test333": {
+      "id": "QxuarzGl_S",
+      "slug": "test333",
+      "description": "",
+      "metadata": {},
+      "createdAt": "2025-11-26T03:10:20.108Z",
+      "lastHit": "2025-11-26T03:16:44.528Z",
+      "hits": 2,
+      "logs": [
+        {
+          "id": "miffo4fk",
+          "timestamp": "2025-11-26T03:16:44.528Z",
+          "body": "atat2",
+          "bodyPreview": "atat2",
+          "formatted": null,
+          "isJson": false,
+          "byteSize": 5
+        },
+        {
+          "id": "mifffvtj",
+          "timestamp": "2025-11-26T03:10:20.119Z",
+          "body": "atat2",
+          "bodyPreview": "atat2",
+          "formatted": null,
+          "isJson": false,
+          "byteSize": 5
+        }
+      ]
+    },
+    "aalyahzhuwe": {
+      "id": "6hczgwS46v",
+      "slug": "aalyahzhuwe",
+      "description": "",
+      "metadata": {},
+      "createdAt": "2026-01-31T15:06:34.624Z",
+      "lastHit": "2026-01-31T15:08:56.145Z",
+      "hits": 3,
+      "logs": [
+        {
+          "id": "ml2g68cx",
+          "timestamp": "2026-01-31T15:08:56.145Z",
+          "body": "{\"from\":\"Google <no-reply@accounts.google.com>\",\"to\":\"aalyahzhuwe@gmail.com\",\"subject\":\"Security Alert: New sign-in\",\"date\":\"2026-01-31T20:30:00+07:00\",\"plainBody\":\"Someone just signed in to your Google Account.\\n\\nYour one-time code is: 529184\\n\\nIf this was you, no action is needed.\",\"htmlBody\":\"<html><body><h2>Security Alert</h2><p>New sign-in detected.</p><p>Your code: <strong>529184</strong></p></body></html>\"}",
+          "bodyPreview": "{\n  \"from\": \"Google <no-reply@accounts.google.com>\",\n  \"to\": \"aalyahzhuwe@gmail.com\",\n  \"subject\": \"Security Alert: New sign-in\",\n  \"date\": \"2026-01-31T20:30:00+07:00\",\n  \"plainBody\": \"Someone just signed in to your Google Account.\\n\\nYour one-time code is: 529184\\n\\nIf this was you, no action is needed.\",\n  \"htmlBody\": \"<html><body><h2>Security Alert</h2><p>New sign-in detected.</p><p>Your code: <strong>529184</strong></p></body></html>\"\n}",
+          "formatted": "{\n  \"from\": \"Google <no-reply@accounts.google.com>\",\n  \"to\": \"aalyahzhuwe@gmail.com\",\n  \"subject\": \"Security Alert: New sign-in\",\n  \"date\": \"2026-01-31T20:30:00+07:00\",\n  \"plainBody\": \"Someone just signed in to your Google Account.\\n\\nYour one-time code is: 529184\\n\\nIf this was you, no action is needed.\",\n  \"htmlBody\": \"<html><body><h2>Security Alert</h2><p>New sign-in detected.</p><p>Your code: <strong>529184</strong></p></body></html>\"\n}",
+          "isJson": true,
+          "byteSize": 419
+        },
+        {
+          "id": "ml2g66mh",
+          "timestamp": "2026-01-31T15:08:53.897Z",
+          "body": "{\"from\":\"Facebook <notification@facebookmail.com>\",\"to\":\"aalyahzhuwe@gmail.com\",\"subject\":\"New login to Instagram from Chrome\",\"date\":\"2026-01-31T21:45:00+07:00\",\"plainBody\":\"Hi aalyahzhuwe,\\n\\nWe noticed a new login to your Instagram account from Chrome on Windows.\\n\\nLocation: Jakarta, Indonesia\\nDevice: Windows PC\\n\\nIf this was you, you can ignore this message.\\n\\nVerification code: 847291\",\"htmlBody\":\"<html><body><h2>New Login Detected</h2><p>We noticed a login from Chrome on Windows.</p><p>Code: <strong>847291</strong></p></body></html>\"}",
+          "bodyPreview": "{\n  \"from\": \"Facebook <notification@facebookmail.com>\",\n  \"to\": \"aalyahzhuwe@gmail.com\",\n  \"subject\": \"New login to Instagram from Chrome\",\n  \"date\": \"2026-01-31T21:45:00+07:00\",\n  \"plainBody\": \"Hi aalyahzhuwe,\\n\\nWe noticed a new login to your Instagram account from Chrome on Windows.\\n\\nLocation: Jakarta, Indonesia\\nDevice: Windows PC\\n\\nIf this was you, you can ignore this message.\\n\\nVerification code: 847291\",\n  \"htmlBody\": \"<html><body><h2>New Login Detected</h2><p>We noticed a login from Chrome on Windows.</p><p>Code: <strong>847291</strong></p></body></html>\"\n}",
+          "formatted": "{\n  \"from\": \"Facebook <notification@facebookmail.com>\",\n  \"to\": \"aalyahzhuwe@gmail.com\",\n  \"subject\": \"New login to Instagram from Chrome\",\n  \"date\": \"2026-01-31T21:45:00+07:00\",\n  \"plainBody\": \"Hi aalyahzhuwe,\\n\\nWe noticed a new login to your Instagram account from Chrome on Windows.\\n\\nLocation: Jakarta, Indonesia\\nDevice: Windows PC\\n\\nIf this was you, you can ignore this message.\\n\\nVerification code: 847291\",\n  \"htmlBody\": \"<html><body><h2>New Login Detected</h2><p>We noticed a login from Chrome on Windows.</p><p>Code: <strong>847291</strong></p></body></html>\"\n}",
+          "isJson": true,
+          "byteSize": 550
+        },
+        {
+          "id": "ml2g5s7q",
+          "timestamp": "2026-01-31T15:08:35.222Z",
+          "body": "{\"from\":\"Instagram <security@mail.instagram.com>\",\"to\":\"aalyahzhuwe@gmail.com\",\"subject\":\"Authenticate your account\",\"date\":\"2026-01-31T22:05:00+07:00\",\"plainBody\":\"Hi aalyahzhuwe,\\n\\nSomeone tried to modify settings on your Instagram account.\\n\\nIf this was you, please use the following code to verify:\\n\\n40980534\\n\\nIf this wasnt you, please reset your password at https://www.instagram.com/accounts/password/reset\",\"htmlBody\":\"<html><body><h2>Authenticate your account</h2><p>Hi aalyahzhuwe,</p><p>Someone tried to modify settings on your Instagram account.</p><p>If this was you, use code: <strong>40980534</strong></p></body></html>\"}",
+          "bodyPreview": "{\n  \"from\": \"Instagram <security@mail.instagram.com>\",\n  \"to\": \"aalyahzhuwe@gmail.com\",\n  \"subject\": \"Authenticate your account\",\n  \"date\": \"2026-01-31T22:05:00+07:00\",\n  \"plainBody\": \"Hi aalyahzhuwe,\\n\\nSomeone tried to modify settings on your Instagram account.\\n\\nIf this was you, please use the following code to verify:\\n\\n40980534\\n\\nIf this wasnt you, please reset your password at https://www.instagram.com/accounts/password/reset\",\n  \"htmlBody\": \"<html><body><h2>Authenticate your account</h2><p>Hi aalyahzhuwe,</p><p>Someone tried to modify settings on your Instagram account.</p><p>If this",
+          "formatted": "{\n  \"from\": \"Instagram <security@mail.instagram.com>\",\n  \"to\": \"aalyahzhuwe@gmail.com\",\n  \"subject\": \"Authenticate your account\",\n  \"date\": \"2026-01-31T22:05:00+07:00\",\n  \"plainBody\": \"Hi aalyahzhuwe,\\n\\nSomeone tried to modify settings on your Instagram account.\\n\\nIf this was you, please use the following code to verify:\\n\\n40980534\\n\\nIf this wasnt you, please reset your password at https://www.instagram.com/accounts/password/reset\",\n  \"htmlBody\": \"<html><body><h2>Authenticate your account</h2><p>Hi aalyahzhuwe,</p><p>Someone tried to modify settings on your Instagram account.</p><p>If this was you, use code: <strong>40980534</strong></p></body></html>\"\n}",
+          "isJson": true,
+          "byteSize": 641
+        }
+      ]
+    },
+    "k3yt2299aaoc": {
+      "id": "74JOiG3O_C",
+      "slug": "k3yt2299aaoc",
+      "description": "",
+      "metadata": {},
+      "createdAt": "2026-01-31T15:40:11.551Z",
       "lastHit": null,
       "hits": 0,
       "logs": []
