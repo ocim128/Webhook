@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction, Router } from 'e
 import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import getRawBody from 'raw-body';
 import { createWebhookStore, WebhookStore, WebhookEntry } from './store';
 
@@ -71,11 +72,15 @@ export async function createApp(): Promise<Application> {
 
     await store.init();
 
-    const publicDir = path.join(__dirname, '..', 'public');
+    const publicDir = fs.existsSync(path.join(__dirname, '..', 'public-dist'))
+        ? path.join(__dirname, '..', 'public-dist')
+        : path.join(__dirname, '..', 'public');
     const indexFile = path.join(publicDir, 'index.html');
 
     app.disable('x-powered-by');
-    app.use(helmet());
+    app.use(helmet({
+        contentSecurityPolicy: false, // Disable CSP for easier usage or configure it properly
+    }));
     app.use(cors());
     app.use((_req: Request, res: Response, next: NextFunction) => {
         res.setHeader('Cache-Control', 'no-store');
@@ -84,7 +89,11 @@ export async function createApp(): Promise<Application> {
     app.use(express.static(publicDir));
 
     app.get('/', (_req: Request, res: Response) => {
-        res.sendFile(indexFile);
+        if (fs.existsSync(indexFile)) {
+            res.sendFile(indexFile);
+        } else {
+            res.status(404).send('Frontend not built. Please run "npm run build".');
+        }
     });
 
     app.get(

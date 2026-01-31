@@ -130,9 +130,14 @@ export class FileWebhookStore {
         } catch (err) {
             const nodeErr = err as NodeJS.ErrnoException;
             if (nodeErr.code === 'ENOENT') {
-                await fs.mkdir(this.dir, { recursive: true });
-                this.state = this.normalizeState(this.state);
-                await this.persist();
+                try {
+                    await fs.mkdir(this.dir, { recursive: true });
+                    this.state = this.normalizeState(this.state);
+                    await this.persist();
+                } catch (persistErr) {
+                    console.warn('Warning: Could not initialize storage directory or file. This is expected on read-only environments like Vercel if MongoDB is not used.', persistErr);
+                    // Continue anyway, it will just live in memory for this invocation
+                }
             } else {
                 throw err;
             }
