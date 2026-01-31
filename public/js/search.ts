@@ -3,33 +3,69 @@
  * @module search
  */
 
-import { escapeHtml } from './utils.js';
-import { searchInput, searchClear, searchStats, filterChips, slugView, logListEl } from './dom.js';
+import { searchInput, searchClear, searchStats, filterChips, slugView, logListEl } from './dom';
 import {
     logsCache, searchQuery, setSearchQuery, activeFilter, setActiveFilter,
     filteredLogs, setFilteredLogs, keyboardFocusIndex, setKeyboardFocusIndex,
-    currentSlug, activeLogId, setActiveLogId
-} from './state.js';
-import { extractEmailPayload } from './email.js';
-import { renderFilteredLogs, selectLog, updateKeyboardFocus } from './logs.js';
+    currentSlug, activeLogId, setActiveLogId, FilterType
+} from './state';
+import type { WebhookLogEntry } from './types';
+
+// Forward declarations for circular imports
+let extractEmailPayload: ((log: WebhookLogEntry) => EmailPayload | null) | null = null;
+let renderFilteredLogs: ((logs: WebhookLogEntry[]) => void) | null = null;
+let selectLog: ((logId: string | null) => void) | null = null;
+let updateKeyboardFocus: (() => void) | null = null;
+
+interface EmailPayload {
+    from?: string;
+    to?: string;
+    subject?: string;
+    plainBody?: string;
+    htmlBody?: string;
+}
 
 // Late-bound references
-let _showToast = null;
-let _loadDetail = null;
+let _showToast: ((message: string) => void) | null = null;
+let _loadDetail: ((slug: string, options?: { updateUrl?: boolean }) => Promise<void>) | null = null;
 
 /**
  * Set references (called from app.js to break circular dependency)
- * @param {Object} refs - Object with showToast and loadDetail
  */
-export function setSearchDeps(refs) {
-    _showToast = refs.showToast;
-    _loadDetail = refs.loadDetail;
+export function setSearchDeps(refs: {
+    showToast?: (message: string) => void;
+    loadDetail?: (slug: string, options?: { updateUrl?: boolean }) => Promise<void>;
+}): void {
+    _showToast = refs.showToast ?? null;
+    _loadDetail = refs.loadDetail ?? null;
+}
+
+/**
+ * Set email module references
+ */
+export function setEmailRefs(refs: {
+    extractEmailPayload?: (log: WebhookLogEntry) => EmailPayload | null;
+}): void {
+    extractEmailPayload = refs.extractEmailPayload ?? null;
+}
+
+/**
+ * Set logs module references
+ */
+export function setLogsRefs(refs: {
+    renderFilteredLogs?: (logs: WebhookLogEntry[]) => void;
+    selectLog?: (logId: string | null) => void;
+    updateKeyboardFocus?: () => void;
+}): void {
+    renderFilteredLogs = refs.renderFilteredLogs ?? null;
+    selectLog = refs.selectLog ?? null;
+    updateKeyboardFocus = refs.updateKeyboardFocus ?? null;
 }
 
 /**
  * Initialize search and filter features
  */
-export function initSearch() {
+export function initSearch(): void {
     setupSearch();
     setupFilters();
     setupKeyboardNavigation();
@@ -38,15 +74,17 @@ export function initSearch() {
 /**
  * Setup search input handlers
  */
-function setupSearch() {
+function setupSearch(): void {
     if (!searchInput) return;
 
     searchInput.addEventListener('input', (e) => {
-        setSearchQuery(e.target.value.toLowerCase().trim());
+        const target = e.target as HTMLInputElement;
+        setSearchQuery(target.value.toLowerCase().trim());
         applySearchAndFilter();
     });
 
     searchClear?.addEventListener('click', () => {
+        if (!searchInput) return;
         searchInput.value = '';
         setSearchQuery('');
         applySearchAndFilter();
@@ -57,12 +95,13 @@ function setupSearch() {
 /**
  * Setup filter chip handlers
  */
-function setupFilters() {
+function setupFilters(): void {
     filterChips.forEach(chip => {
         chip.addEventListener('click', () => {
             filterChips.forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
-            setActiveFilter(chip.getAttribute('data-filter'));
+            const filter = chip.getAttribute('data-filter') as FilterType;
+            setActiveFilter(filter || 'all');
             applySearchAndFilter();
         });
     });
@@ -71,7 +110,7 @@ function setupFilters() {
 /**
  * Apply current search and filter to logs
  */
-export function applySearchAndFilter() {
+export function applySearchAndFilter(): void {
     if (!logsCache.length) {
         updateSearchStats(0, 0);
         return;
@@ -79,7 +118,7 @@ export function applySearchAndFilter() {
 
     const newFilteredLogs = logsCache.filter(log => {
         // Filter by type
-        const emailPayload = extractEmailPayload(log);
+        const emailPayload = extractEmailPayload ? extractEmailPayload(log) : null;
         if (activeFilter === 'email' && !emailPayload) return false;
         if (activeFilter === 'json' && (!log.isJson || emailPayload)) return false;
 
@@ -92,17 +131,14 @@ export function applySearchAndFilter() {
 
     setFilteredLogs(newFilteredLogs);
     updateSearchStats(newFilteredLogs.length, logsCache.length);
-    renderFilteredLogs(newFilteredLogs);
+    if (renderFilteredLogs) renderFilteredLogs(newFilteredLogs);
 }
 
 /**
  * Build searchable text from log
- * @param {Object} log - Log entry
- * @param {Object|null} emailPayload - Pre-extracted email payload
- * @returns {string} Searchable text
  */
-function buildSearchableText(log, emailPayload = null) {
-    const parts = [];
+function buildSearchableText(log: WebhookLogEntry, emailPayload: EmailPayload | null = null): string {
+    const parts: string[] = [];
 
     if (emailPayload) {
         if (emailPayload.from) parts.push(emailPayload.from);
@@ -119,10 +155,8 @@ function buildSearchableText(log, emailPayload = null) {
 
 /**
  * Update search stats display
- * @param {number} shown - Number of shown results
- * @param {number} total - Total number of logs
  */
-export function updateSearchStats(shown, total) {
+export function updateSearchStats(shown: number, total: number): void {
     if (!searchStats) return;
 
     if (searchQuery || activeFilter !== 'all') {
@@ -135,10 +169,10 @@ export function updateSearchStats(shown, total) {
 /**
  * Setup keyboard navigation
  */
-function setupKeyboardNavigation() {
+function setupKeyboardNavigation(): void {
     document.addEventListener('keydown', (e) => {
         // Skip if typing in input
-        const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+        const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '');
 
         // Focus search on /
         if (e.key === '/' && !isTyping) {
@@ -149,7 +183,7 @@ function setupKeyboardNavigation() {
 
         // Clear search on Escape
         if (e.key === 'Escape') {
-            if (document.activeElement === searchInput) {
+            if (searchInput && document.activeElement === searchInput) {
                 searchInput.blur();
                 searchInput.value = '';
                 setSearchQuery('');
@@ -172,7 +206,7 @@ function setupKeyboardNavigation() {
             case 'ArrowDown':
                 e.preventDefault();
                 setKeyboardFocusIndex(Math.min(keyboardFocusIndex + 1, logs.length - 1));
-                updateKeyboardFocus();
+                if (updateKeyboardFocus) updateKeyboardFocus();
                 scrollToFocusedItem();
                 break;
 
@@ -180,7 +214,7 @@ function setupKeyboardNavigation() {
             case 'ArrowUp':
                 e.preventDefault();
                 setKeyboardFocusIndex(Math.max(keyboardFocusIndex - 1, 0));
-                updateKeyboardFocus();
+                if (updateKeyboardFocus) updateKeyboardFocus();
                 scrollToFocusedItem();
                 break;
 
@@ -188,8 +222,8 @@ function setupKeyboardNavigation() {
                 e.preventDefault();
                 if (keyboardFocusIndex >= 0 && keyboardFocusIndex < logs.length) {
                     setActiveLogId(logs[keyboardFocusIndex].id);
-                    selectLog(activeLogId);
-                    updateKeyboardFocus();
+                    if (selectLog) selectLog(activeLogId);
+                    if (updateKeyboardFocus) updateKeyboardFocus();
                 }
                 break;
 
@@ -207,7 +241,8 @@ function setupKeyboardNavigation() {
 /**
  * Scroll to keyboard-focused item
  */
-function scrollToFocusedItem() {
+function scrollToFocusedItem(): void {
+    if (!logListEl) return;
     const items = logListEl.querySelectorAll('.log-item');
     const focusedItem = items[keyboardFocusIndex];
 

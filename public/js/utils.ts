@@ -5,10 +5,8 @@
 
 /**
  * Format a timestamp to locale string
- * @param {string|Date} value - Timestamp to format
- * @returns {string} Formatted date string
  */
-export function formatTimestamp(value) {
+export function formatTimestamp(value: string | Date | null | undefined): string {
     if (!value) return '-';
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '-';
@@ -17,16 +15,14 @@ export function formatTimestamp(value) {
 
 /**
  * Format a timestamp to relative time (e.g., "5m ago")
- * @param {string|Date} value - Timestamp to format
- * @returns {string} Relative time string
  */
-export function formatRelativeTime(value) {
+export function formatRelativeTime(value: string | Date | null | undefined): string {
     if (!value) return '-';
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '-';
 
     const now = new Date();
-    const diffMs = now - date;
+    const diffMs = now.getTime() - date.getTime();
     const diffSec = Math.floor(diffMs / 1000);
     const diffMin = Math.floor(diffSec / 60);
     const diffHour = Math.floor(diffMin / 60);
@@ -43,10 +39,8 @@ export function formatRelativeTime(value) {
 
 /**
  * Format bytes to human-readable size
- * @param {number} size - Size in bytes
- * @returns {string} Formatted size string
  */
-export function formatBytes(size) {
+export function formatBytes(size: number | null | undefined): string {
     if (!size) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB'];
     let idx = 0;
@@ -60,10 +54,8 @@ export function formatBytes(size) {
 
 /**
  * Escape HTML entities to prevent XSS
- * @param {string} value - String to escape
- * @returns {string} Escaped string
  */
-export function escapeHtml(value) {
+export function escapeHtml(value: unknown): string {
     if (!value && value !== 0) return '';
     return value
         .toString()
@@ -76,21 +68,16 @@ export function escapeHtml(value) {
 
 /**
  * Encode HTML for use in iframe srcdoc attribute
- * @param {string} html - HTML to encode
- * @returns {string} Encoded HTML
  */
-export function encodeSrcDoc(html) {
+export function encodeSrcDoc(html: string | null | undefined): string {
     if (!html) return '';
     return escapeHtml(html);
 }
 
 /**
  * Truncate text to a maximum length with ellipsis
- * @param {string} value - Text to truncate
- * @param {number} maxLength - Maximum length (default: 120)
- * @returns {string} Truncated text
  */
-export function truncateText(value, maxLength = 120) {
+export function truncateText(value: string | null | undefined, maxLength = 120): string {
     if (!value) return '';
     if (value.length <= maxLength) {
         return value;
@@ -100,10 +87,8 @@ export function truncateText(value, maxLength = 120) {
 
 /**
  * Collapse multiple whitespace characters into single spaces
- * @param {string} value - Text to compact
- * @returns {string} Compacted text
  */
-export function compactWhitespace(value) {
+export function compactWhitespace(value: string | null | undefined): string {
     if (!value) {
         return '';
     }
@@ -112,10 +97,8 @@ export function compactWhitespace(value) {
 
 /**
  * Normalize and sanitize a slug value
- * @param {string} value - Raw slug input
- * @returns {string} Normalized slug
  */
-export function normaliseSlug(value) {
+export function normaliseSlug(value: unknown): string {
     if (!value) return '';
     return value
         .toString()
@@ -128,10 +111,8 @@ export function normaliseSlug(value) {
 
 /**
  * Get initials from a name string
- * @param {string} name - Name to extract initials from
- * @returns {string} 1-2 character initials
  */
-export function getInitials(name) {
+export function getInitials(name: string | null | undefined): string {
     if (!name || name === 'Unknown') return '?';
     const parts = name.trim().split(/[\s._-]+/).filter(Boolean);
     if (parts.length >= 2) {
@@ -142,10 +123,8 @@ export function getInitials(name) {
 
 /**
  * Get a consistent avatar color based on name hash
- * @param {string} name - Name to hash
- * @returns {string} Color class name
  */
-export function getAvatarColor(name) {
+export function getAvatarColor(name: string | null | undefined): string {
     const colors = ['', 'green', 'blue', 'pink', 'orange', 'cyan', 'yellow'];
     if (!name) return '';
     let hash = 0;
@@ -158,10 +137,8 @@ export function getAvatarColor(name) {
 
 /**
  * Extract verification/OTP codes from text
- * @param {string} text - Text to search for codes
- * @returns {string|null} Found code or null
  */
-export function extractVerificationCode(text) {
+export function extractVerificationCode(text: string | null | undefined): string | null {
     if (!text) return null;
     // Look for 4-8 digit codes that appear to be verification codes
     const patterns = [
@@ -179,10 +156,8 @@ export function extractVerificationCode(text) {
 
 /**
  * Convert URLs in text to clickable links
- * @param {string} text - Text containing URLs
- * @returns {string} Text with URLs as anchor tags
  */
-export function linkifyText(text) {
+export function linkifyText(text: string | null | undefined): string {
     if (!text) return '';
 
     const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
@@ -195,11 +170,8 @@ export function linkifyText(text) {
 
 /**
  * Highlight search query matches in text
- * @param {string} text - Text to highlight in
- * @param {string} query - Query to highlight
- * @returns {string} HTML with highlighted matches
  */
-export function highlightMatch(text, query) {
+export function highlightMatch(text: string | null | undefined, query: string | null | undefined): string {
     if (!query || !text) return escapeHtml(text);
 
     const escaped = escapeHtml(text);

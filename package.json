@@ -2,10 +2,18 @@
   "name": "webhook",
   "version": "1.0.0",
   "description": "Local webhook capture service with dynamic, user-defined endpoints.",
-  "main": "src/server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node dist/server.js",
+    "dev": "npx ts-node src/server.ts",
+    "dev:watch": "nodemon --exec \"npx ts-node\" src/server.ts",
+    "dev:frontend": "vite",
+    "build": "tsc && npm run build:frontend",
+    "build:frontend": "vite build",
+    "preview:frontend": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "typecheck:frontend": "tsc --project tsconfig.frontend.json --noEmit",
+    "typecheck:all": "npm run typecheck && npm run typecheck:frontend"
   },
   "keywords": [
     "webhook",
@@ -23,6 +31,12 @@
     "raw-body": "^3.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.1.0",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   }
 }

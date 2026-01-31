@@ -3,38 +3,51 @@
  * @module api
  */
 
-import { normaliseSlug } from './utils.js';
-import { statEls, slugTitle } from './dom.js';
-import { currentSlug } from './state.js';
+import { normaliseSlug } from './utils';
+import { statEls, slugTitle } from './dom';
+import type { WebhookHook, WebhookHookSummary, WebhookStats } from './types';
+
+// View function types
+type ShowDetailFn = (hook: WebhookHook, options?: { updateUrl?: boolean }) => void;
+type ShowAdminOverviewFn = (slug: string, hooks: WebhookHookSummary[]) => void;
+type ShowSlugMissingFn = (slug: string, message: string) => void;
+type UpdateStatusBadgeFn = (loading: boolean, error?: string) => void;
+type ToggleViewFn = (view: string | null) => void;
+type RenderStatsFn = (stats: WebhookStats) => void;
+
+interface ViewRefs {
+    showDetail?: ShowDetailFn;
+    showAdminOverview?: ShowAdminOverviewFn;
+    showSlugMissing?: ShowSlugMissingFn;
+    updateStatusBadge?: UpdateStatusBadgeFn;
+    toggleView?: ToggleViewFn;
+    renderStats?: RenderStatsFn;
+}
 
 // Late-bound references to avoid circular imports
-let _showDetail = null;
-let _showAdminOverview = null;
-let _showSlugMissing = null;
-let _updateStatusBadge = null;
-let _toggleView = null;
-let _renderStats = null;
+let _showDetail: ShowDetailFn | null = null;
+let _showAdminOverview: ShowAdminOverviewFn | null = null;
+let _showSlugMissing: ShowSlugMissingFn | null = null;
+let _updateStatusBadge: UpdateStatusBadgeFn | null = null;
+let _toggleView: ToggleViewFn | null = null;
+let _renderStats: RenderStatsFn | null = null;
 
 /**
  * Set view module references (called from app.js to break circular dependency)
- * @param {Object} refs - Object with view functions
  */
-export function setViewRefs(refs) {
-    _showDetail = refs.showDetail;
-    _showAdminOverview = refs.showAdminOverview;
-    _showSlugMissing = refs.showSlugMissing;
-    _updateStatusBadge = refs.updateStatusBadge;
-    _toggleView = refs.toggleView;
-    _renderStats = refs.renderStats;
+export function setViewRefs(refs: ViewRefs): void {
+    _showDetail = refs.showDetail ?? null;
+    _showAdminOverview = refs.showAdminOverview ?? null;
+    _showSlugMissing = refs.showSlugMissing ?? null;
+    _updateStatusBadge = refs.updateStatusBadge ?? null;
+    _toggleView = refs.toggleView ?? null;
+    _renderStats = refs.renderStats ?? null;
 }
 
 /**
  * Load webhook details by slug
- * @param {string} slug - Webhook slug
- * @param {Object} options - Options
- * @param {boolean} options.updateUrl - Whether to update browser URL
  */
-export async function loadDetail(slug, options = {}) {
+export async function loadDetail(slug: string, options: { updateUrl?: boolean } = {}): Promise<void> {
     const targetSlug = normaliseSlug(slug);
     if (!targetSlug) {
         if (_toggleView) _toggleView(null);
@@ -59,21 +72,22 @@ export async function loadDetail(slug, options = {}) {
 
         if (_showDetail) _showDetail(payload.hook, options);
     } catch (err) {
-        if (_showSlugMissing) _showSlugMissing(targetSlug, err.message);
-        if (_updateStatusBadge) _updateStatusBadge(false, err.message);
+        const error = err as Error;
+        if (_showSlugMissing) _showSlugMissing(targetSlug, error.message);
+        if (_updateStatusBadge) _updateStatusBadge(false, error.message);
     }
 }
 
 /**
  * Load global statistics
  */
-export async function loadStats() {
+export async function loadStats(): Promise<void> {
     try {
         const response = await fetch('/webhooks/stats');
         if (!response.ok) throw new Error('Failed to load stats');
         const { stats } = await response.json();
         if (_renderStats) _renderStats(stats);
-    } catch (err) {
+    } catch {
         Object.values(statEls).forEach((el) => {
             if (el) el.textContent = '-';
         });
@@ -82,9 +96,8 @@ export async function loadStats() {
 
 /**
  * Reset webhook logs
- * @param {string} slug - Webhook slug to reset
  */
-export async function resetWebhook(slug) {
+export async function resetWebhook(slug: string): Promise<void> {
     if (!confirm(`Reset logs for "${slug}"?`)) return;
 
     try {
@@ -99,15 +112,15 @@ export async function resetWebhook(slug) {
 
         if (_showDetail) _showDetail(payload.hook, { updateUrl: false });
     } catch (err) {
-        alert(err.message);
+        const error = err as Error;
+        alert(error.message);
     }
 }
 
 /**
  * Delete a webhook
- * @param {string} slug - Webhook slug to delete
  */
-export async function deleteWebhook(slug) {
+export async function deleteWebhook(slug: string): Promise<void> {
     if (!confirm(`Delete webhook "${slug}"? This cannot be undone.`)) return;
 
     try {
@@ -122,18 +135,19 @@ export async function deleteWebhook(slug) {
 
         window.location.href = '/';
     } catch (err) {
-        alert(err.message);
+        const error = err as Error;
+        alert(error.message);
     }
 }
 
 /**
  * Create a new webhook via form submission
- * @param {Event} event - Form submit event
  */
-export async function handleCreateWebhook(event) {
+export async function handleCreateWebhook(event: Event): Promise<void> {
     event.preventDefault();
-    const form = event.target;
-    const rawSlug = form.slug.value.trim();
+    const form = event.target as HTMLFormElement;
+    const slugInput = form.elements.namedItem('slug') as HTMLInputElement;
+    const rawSlug = slugInput.value.trim();
     const slug = normaliseSlug(rawSlug);
 
     if (!slug) {
@@ -159,7 +173,8 @@ export async function handleCreateWebhook(event) {
         const targetSlug = payload?.hook?.slug || slug;
         window.location.href = `/${targetSlug}`;
     } catch (err) {
-        alert(err.message);
+        const error = err as Error;
+        alert(error.message);
     } finally {
         toggleForm(form, false);
     }
@@ -167,11 +182,11 @@ export async function handleCreateWebhook(event) {
 
 /**
  * Toggle form elements enabled/disabled state
- * @param {HTMLFormElement} form - Form to toggle
- * @param {boolean} disabled - Whether to disable
  */
-export function toggleForm(form, disabled) {
-    [...form.elements].forEach((el) => {
+export function toggleForm(form: HTMLFormElement, disabled: boolean): void {
+    const elements = form.elements;
+    for (let i = 0; i < elements.length; i++) {
+        const el = elements[i] as HTMLInputElement | HTMLButtonElement | HTMLSelectElement;
         el.disabled = disabled;
-    });
+    }
 }

@@ -3,6 +3,8 @@
  * @module dom
  */
 
+import type { StatElements } from './types';
+
 // Core layout elements
 export const statusBadge = document.getElementById('status-badge');
 export const homeView = document.getElementById('home-view');
@@ -15,7 +17,7 @@ export const logListEl = document.getElementById('log-list');
 export const logDetailEl = document.getElementById('log-detail');
 
 // Form elements
-export const createForm = document.getElementById('create-form');
+export const createForm = document.getElementById('create-form') as HTMLFormElement | null;
 
 // Action buttons
 export const backButton = document.getElementById('back-home');
@@ -24,7 +26,7 @@ export const deleteButton = document.getElementById('delete-slug');
 export const logsRefreshBtn = document.getElementById('logs-refresh');
 
 // Statistics elements
-export const statEls = {
+export const statEls: StatElements = {
     total: document.getElementById('stat-total-hooks'),
     hits: document.getElementById('stat-total-hits'),
     lastHit: document.getElementById('stat-last-hit'),
@@ -32,7 +34,7 @@ export const statEls = {
 };
 
 // Search elements
-export const searchInput = document.getElementById('search-input');
+export const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
 export const searchClear = document.getElementById('search-clear');
 export const searchStats = document.getElementById('search-stats');
-export const filterChips = document.querySelectorAll('.filter-chip');
+export const filterChips = document.querySelectorAll<HTMLElement>('.filter-chip');

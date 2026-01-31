@@ -6,4 +6,5 @@ yarn-error.log*
 pnpm-debug.log*
 coverage
 dist
+public-dist
 data/*.log

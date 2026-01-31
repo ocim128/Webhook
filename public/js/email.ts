@@ -3,41 +3,58 @@
  * @module email
  */
 
-import { escapeHtml, formatTimestamp } from './utils.js';
-import { logDetailEl } from './dom.js';
-import { showToast } from './view.js';
+import { escapeHtml, formatTimestamp } from './utils';
+import { logDetailEl } from './dom';
+import type { WebhookLogEntry } from './types';
+
+// Forward declaration for circular import
+let showToast: ((message: string) => void) | null = null;
+
+export function setViewRefs(refs: { showToast?: (message: string) => void }): void {
+    showToast = refs.showToast ?? null;
+}
+
+export interface EmailPayload {
+    from?: string;
+    to?: string;
+    subject?: string;
+    date?: string;
+    plainBody?: string;
+    htmlBody?: string;
+}
+
+interface LogWithCache extends WebhookLogEntry {
+    __parsedPayload?: Record<string, unknown> | null;
+}
 
 /**
  * Parse log body as JSON (with caching)
- * @param {Object} log - Log entry
- * @returns {Object|null} Parsed JSON or null
  */
-export function parseLogJson(log) {
+export function parseLogJson(log: WebhookLogEntry): Record<string, unknown> | null {
     if (!log?.isJson) {
         return null;
     }
-    if (Object.prototype.hasOwnProperty.call(log, '__parsedPayload')) {
-        return log.__parsedPayload;
+    const logWithCache = log as LogWithCache;
+    if (Object.prototype.hasOwnProperty.call(logWithCache, '__parsedPayload')) {
+        return logWithCache.__parsedPayload ?? null;
     }
     const raw = log.body || log.formatted;
     if (!raw) {
-        log.__parsedPayload = null;
+        logWithCache.__parsedPayload = null;
         return null;
     }
     try {
-        log.__parsedPayload = JSON.parse(raw);
-    } catch (err) {
-        log.__parsedPayload = null;
+        logWithCache.__parsedPayload = JSON.parse(raw);
+    } catch {
+        logWithCache.__parsedPayload = null;
     }
-    return log.__parsedPayload;
+    return logWithCache.__parsedPayload ?? null;
 }
 
 /**
  * Extract email payload from log if it has email structure
- * @param {Object} log - Log entry
- * @returns {Object|null} Email payload or null
  */
-export function extractEmailPayload(log) {
+export function extractEmailPayload(log: WebhookLogEntry): EmailPayload | null {
     const data = parseLogJson(log);
     if (!data || typeof data !== 'object') {
         return null;
@@ -48,21 +65,19 @@ export function extractEmailPayload(log) {
         return null;
     }
     return {
-        from: data.from,
-        to: data.to,
-        subject: data.subject,
-        date: data.date,
-        plainBody: data.plainBody,
-        htmlBody: data.htmlBody,
+        from: data.from as string | undefined,
+        to: data.to as string | undefined,
+        subject: data.subject as string | undefined,
+        date: data.date as string | undefined,
+        plainBody: data.plainBody as string | undefined,
+        htmlBody: data.htmlBody as string | undefined,
     };
 }
 
 /**
  * Extract subject from log JSON
- * @param {Object} log - Log entry
- * @returns {string} Subject or empty string
  */
-export function extractSubjectFromLog(log) {
+export function extractSubjectFromLog(log: WebhookLogEntry): string {
     const data = parseLogJson(log);
     if (!data || typeof data !== 'object') {
         return '';
@@ -73,11 +88,8 @@ export function extractSubjectFromLog(log) {
 
 /**
  * Extract sender name from log
- * @param {Object} log - Log entry
- * @param {Object|null} emailPayload - Pre-extracted email payload
- * @returns {string} Sender name
  */
-export function extractSenderName(log, emailPayload = null) {
+export function extractSenderName(log: WebhookLogEntry, emailPayload: EmailPayload | null = null): string {
     const email = emailPayload || extractEmailPayload(log);
     if (email?.from) {
         // Extract name from "Name <email@example.com>" format
@@ -87,24 +99,24 @@ export function extractSenderName(log, emailPayload = null) {
     }
 
     const data = parseLogJson(log);
-    if (data?.from) return data.from.split('@')[0];
-    if (data?.sender) return data.sender.split('@')[0];
+    if (data?.from && typeof data.from === 'string') return data.from.split('@')[0];
+    if (data?.sender && typeof data.sender === 'string') return data.sender.split('@')[0];
 
     return 'Unknown';
 }
 
 /**
  * Setup email detail action buttons (copy, print, download)
- * @param {string} rawBody - Raw email body JSON
- * @param {Object} emailPayload - Parsed email payload
  */
-export function setupEmailDetailActions(rawBody, emailPayload) {
+export function setupEmailDetailActions(rawBody: string, emailPayload: EmailPayload): void {
+    if (!logDetailEl) return;
+
     // Copy payload button
     const copyBtn = logDetailEl.querySelector('.copy-payload');
     if (copyBtn && rawBody) {
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(rawBody).then(() => {
-                showToast('Copied JSON to clipboard');
+                if (showToast) showToast('Copied JSON to clipboard');
             }).catch(() => {
                 alert('Copy failed, please copy manually.');
             });
@@ -117,7 +129,7 @@ export function setupEmailDetailActions(rawBody, emailPayload) {
             const value = el.getAttribute('data-copy');
             if (value) {
                 navigator.clipboard.writeText(value).then(() => {
-                    showToast(`Copied: ${value}`);
+                    if (showToast) showToast(`Copied: ${value}`);
                 });
             }
         });
@@ -130,7 +142,7 @@ export function setupEmailDetailActions(rawBody, emailPayload) {
             const code = codeEl.getAttribute('data-copy');
             if (code) {
                 navigator.clipboard.writeText(code).then(() => {
-                    showToast(`Copied verification code: ${code}`);
+                    if (showToast) showToast(`Copied verification code: ${code}`);
                 });
             }
         });
@@ -141,6 +153,7 @@ export function setupEmailDetailActions(rawBody, emailPayload) {
     if (printBtn && emailPayload) {
         printBtn.addEventListener('click', () => {
             const printWindow = window.open('', '_blank');
+            if (!printWindow) return;
             printWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -185,7 +198,7 @@ export function setupEmailDetailActions(rawBody, emailPayload) {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast('Downloaded email JSON');
+            if (showToast) showToast('Downloaded email JSON');
         });
     }
 }
@@ -193,7 +206,8 @@ export function setupEmailDetailActions(rawBody, emailPayload) {
 /**
  * Setup email body tab switching
  */
-export function setupEmailTabs() {
+export function setupEmailTabs(): void {
+    if (!logDetailEl) return;
     const tabs = logDetailEl.querySelectorAll('.email-body-tab');
     const contents = logDetailEl.querySelectorAll('.email-body-content');
 
@@ -205,7 +219,7 @@ export function setupEmailTabs() {
             contents.forEach(c => c.classList.remove('active'));
 
             tab.classList.add('active');
-            const content = logDetailEl.querySelector(`[data-content="${targetTab}"]`);
+            const content = logDetailEl?.querySelector(`[data-content="${targetTab}"]`);
             if (content) content.classList.add('active');
         });
     });
@@ -214,7 +228,8 @@ export function setupEmailTabs() {
 /**
  * Setup iframe auto-resize on load
  */
-export function setupIframeLoader() {
+export function setupIframeLoader(): void {
+    if (!logDetailEl) return;
     const previewContainer = logDetailEl.querySelector('.email-preview');
     const iframe = previewContainer?.querySelector('iframe');
 
@@ -224,12 +239,14 @@ export function setupIframeLoader() {
 
             // Try to auto-resize iframe to content
             try {
-                const doc = iframe.contentDocument || iframe.contentWindow.document;
-                const height = doc.documentElement.scrollHeight || doc.body.scrollHeight;
-                if (height > 100) {
-                    iframe.style.height = Math.min(height + 20, 600) + 'px';
+                const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (doc) {
+                    const height = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+                    if (height > 100) {
+                        iframe.style.height = Math.min(height + 20, 600) + 'px';
+                    }
                 }
-            } catch (e) {
+            } catch {
                 // Cross-origin restriction, keep default height
             }
         });

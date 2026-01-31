@@ -1,4 +1,4 @@
-const { createApp } = require('../src/server');
+const { createApp } = require('../dist/server');
 
 let cachedApp;
 
