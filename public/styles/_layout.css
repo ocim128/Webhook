@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Layout - Shell, Header, Main, Grids
+   ========================================================================== */
+
+/* Main Container */
+.shell {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1.5rem;
+}
+
+header h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.8rem;
+}
+
+header p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+/* Main Content */
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Home Page Grid */
+.home-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 2rem;
+}
+
+.home-intro {
+    display: flex;
+    flex-direction: column;
+}
+
+.home-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-left: 1rem;
+}
+
+.home-instructions {
+    margin-top: 1.5rem;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.home-instructions h3 {
+    margin-top: 0;
+}
+
+.home-instructions ol {
+    padding-left: 1.2rem;
+    margin: 0.5rem 0 0;
+    color: var(--text-secondary);
+}
+
+/* Slug Page Layout */
+.slug-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.slug-path {
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.slug-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Logs Split Layout */
+.logs-split {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Logs Panel */
+.logs-panel {
+    margin-top: 2rem;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 1rem;
+}
+
+.logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.logs-header p {
+    margin: 0;
+    color: var(--text-subtle);
+}
+
+/* Summary Grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* Endpoints */
+.endpoints {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.endpoint-line {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}

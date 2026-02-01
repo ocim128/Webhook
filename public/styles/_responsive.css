@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Responsive - Media Queries
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-stats {
+        margin-left: 0;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .slug-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .slug-actions {
+        justify-content: flex-start;
+    }
+
+    .logs-split {
+        grid-template-columns: 1fr;
+    }
+
+    .email-detail-header {
+        padding: 1rem;
+    }
+
+    .email-detail-subject {
+        font-size: 1.15rem;
+    }
+
+    .email-actions {
+        justify-content: center;
+    }
+
+    .log-item-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+}

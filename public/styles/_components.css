@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Components - Cards, Buttons, Forms, Status
+   ========================================================================== */
+
+/* Cards */
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(13, 17, 48, 0.6));
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+/* Status Badges */
+.status {
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-full);
+    font-size: 0.9rem;
+    background: #343b62;
+    color: #c5d1ff;
+}
+
+.status.online {
+    background: #123c27;
+    color: var(--status-success-light);
+}
+
+.status.offline {
+    background: #3c1212;
+    color: var(--status-error);
+}
+
+/* Buttons */
+button {
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 0.65rem 1.3rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: var(--accent-gradient);
+    color: #fff;
+    cursor: pointer;
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+    box-shadow: var(--shadow-button);
+}
+
+button.small {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+button.ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: none;
+}
+
+button.danger {
+    background: linear-gradient(135deg, #f857a6, #ff5858);
+}
+
+/* Pill Form */
+.pill-form {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+}
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+input,
+textarea {
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+    color: inherit;
+    padding: 0.75rem;
+    font-size: 1rem;
+    width: 100%;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* Chips */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-full);
+    padding: 0.15rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.chip-mail {
+    background: rgba(118, 97, 255, 0.2);
+    color: #dbd5ff;
+}
+
+.chip-json {
+    background: rgba(56, 149, 255, 0.2);
+    color: #cbe2ff;
+}
+
+.chip-plain {
+    background: rgba(255, 255, 255, 0.12);
+    color: #f2f2f2;
+}
+
+/* Summary Card */
+.summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0;
+}
+
+.summary-card.compact .summary-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6rem 1.2rem;
+}
+
+.summary-card.compact .summary-extra {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.summary-card .endpoints {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.summary-card .endpoint-line {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.summary-card .endpoint-line code {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Metadata Block */
+.metadata-block pre {
+    margin: 0.3rem 0 0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.6rem;
+    border-radius: 8px;
+    max-height: 140px;
+    overflow: auto;
+    font-size: 0.85rem;
+}
+
+/* Admin Summary */
+.admin-summary ul {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.admin-summary li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    background: var(--bg-subtle);
+}
+
+.admin-summary strong {
+    display: block;
+    font-size: 1rem;
+}
+
+.admin-summary small {
+    display: block;
+    color: var(--text-subtle);
+}
+
+.admin-metrics {
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}

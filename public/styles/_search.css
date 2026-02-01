@@ -1,0 +1,208 @@
+/* ==========================================================================
+   Search & Filter - Search Bar, Filter Chips, Keyboard Hints
+   ========================================================================== */
+
+/* Search Filter Bar */
+.search-filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Search Input */
+.search-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+}
+
+.search-input-wrapper svg {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem 0.6rem 2.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Search Clear Button */
+.search-clear {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: var(--text-subtle);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all var(--transition-fast);
+    box-shadow: none;
+    padding: 0;
+}
+
+.search-clear:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: translateY(-50%);
+}
+
+.search-input:not(:placeholder-shown)+.search-clear {
+    display: flex;
+}
+
+/* Filter Chips */
+.filter-chips {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    padding: 0.4rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: none;
+}
+
+.filter-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    transform: none;
+}
+
+.filter-chip.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.2));
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #c4b5fd;
+}
+
+.filter-chip.active.chip-mail {
+    background: rgba(118, 97, 255, 0.25);
+    border-color: rgba(118, 97, 255, 0.4);
+    color: #dbd5ff;
+}
+
+.filter-chip.active.chip-json {
+    background: rgba(56, 149, 255, 0.25);
+    border-color: rgba(56, 149, 255, 0.4);
+    color: #cbe2ff;
+}
+
+/* Search Stats */
+.search-stats {
+    font-size: 0.75rem;
+    color: var(--text-disabled);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* No Results */
+.no-results {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-disabled);
+}
+
+.no-results-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.no-results-text {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.no-results-hint {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.3rem;
+}
+
+/* Keyboard Hints */
+.keyboard-hints {
+    display: flex;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.keyboard-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-disabled);
+}
+
+.keyboard-hint kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 0.35rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* Linkified Text */
+.linkified-text a {
+    color: #818cf8;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.linkified-text a:hover {
+    color: #a5b4fc;
+    text-decoration: underline;
+}

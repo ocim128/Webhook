@@ -1,0 +1,57 @@
+/* ==========================================================================
+   CSS Custom Properties & Design Tokens
+   ========================================================================== */
+
+:root {
+    /* Color Scheme */
+    color-scheme: light dark;
+
+    /* Typography */
+    --font-sans: 'Segoe UI', Roboto, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+    /* Background Colors */
+    --bg-root: #0f1115;
+    --bg-body: #060812;
+    --bg-card: rgba(17, 22, 43, 0.92);
+    --bg-input: rgba(255, 255, 255, 0.04);
+    --bg-subtle: rgba(255, 255, 255, 0.03);
+
+    /* Text Colors */
+    --text-primary: #f4f6fb;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --text-subtle: rgba(255, 255, 255, 0.65);
+    --text-disabled: rgba(255, 255, 255, 0.5);
+
+    /* Brand Colors */
+    --accent-primary: #6366f1;
+    --accent-secondary: #8b5cf6;
+    --accent-gradient: linear-gradient(135deg, #403fe0, #6f5bf3);
+
+    /* Status Colors */
+    --status-success: #10b981;
+    --status-success-light: #89ffbc;
+    --status-error: #ff8f94;
+    --status-warning: #fbbf24;
+
+    /* Border Colors */
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-input: rgba(255, 255, 255, 0.15);
+
+    /* Shadows */
+    --shadow-card: 0 25px 60px rgba(5, 6, 13, 0.7);
+    --shadow-button: 0 12px 30px rgba(70, 90, 255, 0.3);
+
+    /* Spacing */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-full: 999px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+}
