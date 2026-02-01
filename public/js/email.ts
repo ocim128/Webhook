@@ -5,7 +5,7 @@
 
 import { escapeHtml, formatTimestamp } from './utils';
 import { logDetailEl } from './dom';
-import type { WebhookLogEntry } from './types';
+import type { WebhookLogEntry, EmailPayload } from './types';
 
 // Forward declaration for circular import
 let showToast: ((message: string) => void) | null = null;
@@ -14,17 +14,12 @@ export function setViewRefs(refs: { showToast?: (message: string) => void }): vo
     showToast = refs.showToast ?? null;
 }
 
-export interface EmailPayload {
-    from?: string;
-    to?: string;
-    subject?: string;
-    date?: string;
-    plainBody?: string;
-    htmlBody?: string;
-}
+// EmailPayload is imported from './types' and re-exported for backward compatibility
+export type { EmailPayload } from './types';
 
 interface LogWithCache extends WebhookLogEntry {
     __parsedPayload?: Record<string, unknown> | null;
+    __emailPayload?: EmailPayload | null | undefined;
 }
 
 /**
@@ -52,19 +47,29 @@ export function parseLogJson(log: WebhookLogEntry): Record<string, unknown> | nu
 }
 
 /**
- * Extract email payload from log if it has email structure
+ * Extract email payload from log if it has email structure (with caching)
  */
 export function extractEmailPayload(log: WebhookLogEntry): EmailPayload | null {
+    const logWithCache = log as LogWithCache;
+
+    // Return cached result if available
+    if (Object.prototype.hasOwnProperty.call(logWithCache, '__emailPayload')) {
+        return logWithCache.__emailPayload ?? null;
+    }
+
     const data = parseLogJson(log);
     if (!data || typeof data !== 'object') {
+        logWithCache.__emailPayload = null;
         return null;
     }
     const hasEmailShape =
         (data?.plainBody || data?.htmlBody) && (data?.subject || data?.from || data?.to);
     if (!hasEmailShape) {
+        logWithCache.__emailPayload = null;
         return null;
     }
-    return {
+
+    logWithCache.__emailPayload = {
         from: data.from as string | undefined,
         to: data.to as string | undefined,
         subject: data.subject as string | undefined,
@@ -72,6 +77,8 @@ export function extractEmailPayload(log: WebhookLogEntry): EmailPayload | null {
         plainBody: data.plainBody as string | undefined,
         htmlBody: data.htmlBody as string | undefined,
     };
+
+    return logWithCache.__emailPayload;
 }
 
 /**
@@ -118,7 +125,7 @@ export function setupEmailDetailActions(rawBody: string, emailPayload: EmailPayl
             navigator.clipboard.writeText(rawBody).then(() => {
                 if (showToast) showToast('Copied JSON to clipboard');
             }).catch(() => {
-                alert('Copy failed, please copy manually.');
+                if (showToast) showToast('Copy failed, please copy manually.');
             });
         });
     }

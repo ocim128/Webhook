@@ -232,7 +232,7 @@ export class FileWebhookStore {
             hook.logs = hook.logs.slice(0, this.logLimit);
         }
 
-        this.schedulePersist();
+        await this.schedulePersist();
         return entry;
     }
 
@@ -384,7 +384,11 @@ export class MongoWebhookStore {
         await this.client.connect();
         const db: Db = this.client.db(this.mongoDbName);
         this.collection = db.collection<MongoHookDocument>(this.mongoCollection);
+
+        // Create indexes for optimized queries
         await this.collection.createIndex({ slug: 1 }, { unique: true });
+        // Index for sorting by recent activity (used in listRecentEntries)
+        await this.collection.createIndex({ lastHit: -1 }, { sparse: true });
     }
 
     async listHooks(): Promise<WebhookHookSummary[]> {

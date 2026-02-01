@@ -26,7 +26,7 @@
             <h2>Claim a webhook parameter</h2>
             <p class="intro">
               Pick any username and we'll start listening for POST requests on
-              <code>http://localhost:4000/&lt;slug&gt;</code>. Paste the link into
+              <code><span class="current-origin">http://localhost:4000</span>/&lt;slug&gt;</code>. Paste the link into
               your integrations and visit the same path in the browser to watch payloads roll in.
             </p>
             <form id="create-form" class="pill-form">
@@ -42,7 +42,8 @@
               <h3>How it works</h3>
               <ol>
                 <li>Claim a slug here (or just start POSTing to it).</li>
-                <li>Fire POST requests to <code>http://localhost:4000/&lt;slug&gt;</code>.</li>
+                <li>Fire POST requests to
+                  <code><span class="current-origin">http://localhost:4000</span>/&lt;slug&gt;</code>.</li>
                 <li>Visit the same path in your browser to inspect, reset, or delete.</li>
               </ol>
             </div>
@@ -78,7 +79,7 @@
           <div>
             <p class="slug-path">Live capture for <span id="slug-title"></span></p>
             <div id="slug-summary">
-              <p>Select a webhook by visiting <code>/&lt;slug&gt;</code>.</p>
+              <p>Select a webhook by visiting <code><span class="current-origin">/</span>&lt;slug&gt;</code>.</p>
             </div>
           </div>
           <div class="slug-actions">

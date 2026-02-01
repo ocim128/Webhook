@@ -41,6 +41,16 @@ export interface WebhookHookSummary {
     hits: number;
 }
 
+/** Email payload structure for parsed email data */
+export interface EmailPayload {
+    from?: string;
+    to?: string;
+    subject?: string;
+    date?: string;
+    plainBody?: string;
+    htmlBody?: string;
+}
+
 /** Global statistics */
 export interface WebhookStats {
     totalWebhooks: number;

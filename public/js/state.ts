@@ -6,7 +6,7 @@
 import type { WebhookLogEntry } from './types';
 
 /** Set of reserved paths that should not be treated as slugs */
-export const reservedClientPaths = new Set(['', 'webhooks', 'hooks', 'health', 'meta', 'recent']);
+export const reservedClientPaths = new Set(['', 'webhooks', 'hooks', 'health', 'meta', 'recent', 'favicon.ico']);
 
 /** Currently active webhook slug */
 export let currentSlug: string | null = null;

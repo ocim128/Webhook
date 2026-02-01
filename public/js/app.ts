@@ -55,7 +55,8 @@ setApiViewRefs({
     showSlugMissing,
     updateStatusBadge,
     toggleView,
-    renderStats
+    renderStats,
+    showToast
 });
 
 // Give view module access to logs renderLogs
@@ -113,6 +114,12 @@ setEmailViewRefs({
 
 // Initial page load
 document.addEventListener('DOMContentLoaded', () => {
+    // Update dynamic origin text (handles port 3000 vs 4000 display)
+    const origin = window.location.origin;
+    document.querySelectorAll('.current-origin').forEach(el => {
+        el.textContent = origin;
+    });
+
     const slug = getSlugFromPath();
     toggleView(slug);
 

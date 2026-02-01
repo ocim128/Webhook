@@ -14,6 +14,7 @@ type ShowSlugMissingFn = (slug: string, message: string) => void;
 type UpdateStatusBadgeFn = (loading: boolean, error?: string) => void;
 type ToggleViewFn = (view: string | null) => void;
 type RenderStatsFn = (stats: WebhookStats) => void;
+type ShowToastFn = (message: string) => void;
 
 interface ViewRefs {
     showDetail?: ShowDetailFn;
@@ -22,6 +23,7 @@ interface ViewRefs {
     updateStatusBadge?: UpdateStatusBadgeFn;
     toggleView?: ToggleViewFn;
     renderStats?: RenderStatsFn;
+    showToast?: ShowToastFn;
 }
 
 // Late-bound references to avoid circular imports
@@ -31,6 +33,7 @@ let _showSlugMissing: ShowSlugMissingFn | null = null;
 let _updateStatusBadge: UpdateStatusBadgeFn | null = null;
 let _toggleView: ToggleViewFn | null = null;
 let _renderStats: RenderStatsFn | null = null;
+let _showToast: ShowToastFn | null = null;
 
 /**
  * Set view module references (called from app.js to break circular dependency)
@@ -42,6 +45,7 @@ export function setViewRefs(refs: ViewRefs): void {
     _updateStatusBadge = refs.updateStatusBadge ?? null;
     _toggleView = refs.toggleView ?? null;
     _renderStats = refs.renderStats ?? null;
+    _showToast = refs.showToast ?? null;
 }
 
 /**
@@ -113,7 +117,7 @@ export async function resetWebhook(slug: string): Promise<void> {
         if (_showDetail) _showDetail(payload.hook, { updateUrl: false });
     } catch (err) {
         const error = err as Error;
-        alert(error.message);
+        if (_showToast) _showToast(`Error: ${error.message}`);
     }
 }
 
@@ -136,7 +140,7 @@ export async function deleteWebhook(slug: string): Promise<void> {
         window.location.href = '/';
     } catch (err) {
         const error = err as Error;
-        alert(error.message);
+        if (_showToast) _showToast(`Error: ${error.message}`);
     }
 }
 
@@ -151,7 +155,7 @@ export async function handleCreateWebhook(event: Event): Promise<void> {
     const slug = normaliseSlug(rawSlug);
 
     if (!slug) {
-        alert('Please provide a valid slug.');
+        if (_showToast) _showToast('Please provide a valid slug.');
         return;
     }
 
@@ -174,7 +178,7 @@ export async function handleCreateWebhook(event: Event): Promise<void> {
         window.location.href = `/${targetSlug}`;
     } catch (err) {
         const error = err as Error;
-        alert(error.message);
+        if (_showToast) _showToast(`Error: ${error.message}`);
     } finally {
         toggleForm(form, false);
     }

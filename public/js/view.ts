@@ -134,7 +134,7 @@ export function attachCopyHandlers(): void {
         if (statusBadge) statusBadge.textContent = 'Copied endpoint to clipboard';
         setTimeout(() => updateStatusBadge(true), 1500);
       } catch {
-        alert('Copy failed, please copy manually.');
+        showToast('Copy failed, please copy manually.');
       }
     };
   });
@@ -149,7 +149,7 @@ export async function copyPayload(text: string): Promise<void> {
     if (statusBadge) statusBadge.textContent = 'Copied payload to clipboard';
     setTimeout(() => updateStatusBadge(true), 1500);
   } catch {
-    alert('Copy failed, please copy manually.');
+    showToast('Copy failed, please copy manually.');
   }
 }
 

@@ -180,3 +180,25 @@ export function highlightMatch(text: string | null | undefined, query: string | 
 
     return escaped.replace(regex, '<mark style="background: rgba(251, 191, 36, 0.3); color: #fcd34d; padding: 0 2px; border-radius: 2px;">$1</mark>');
 }
+
+/**
+ * Debounce a function to limit how often it can be called
+ * @param fn Function to debounce
+ * @param delay Delay in milliseconds
+ * @returns Debounced function
+ */
+export function debounce<T extends (...args: Parameters<T>) => void>(
+    fn: T,
+    delay: number
+): (...args: Parameters<T>) => void {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+            fn(...args);
+            timeoutId = null;
+        }, delay);
+    };
+}

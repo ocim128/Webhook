@@ -5,15 +5,15 @@
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "npx ts-node src/server.ts",
-    "dev:watch": "nodemon --exec \"npx ts-node\" src/server.ts",
-    "dev:frontend": "vite",
-    "build": "tsc && npm run build:frontend",
-    "build:frontend": "vite build",
-    "preview:frontend": "vite preview",
+    "dev": "concurrently -n \"server,client\" -c \"blue,green\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "nodemon",
+    "dev:client": "vite",
+    "build": "tsc && npm run build:client",
+    "build:client": "vite build",
+    "preview:client": "vite preview",
     "typecheck": "tsc --noEmit",
-    "typecheck:frontend": "tsc --project tsconfig.frontend.json --noEmit",
-    "typecheck:all": "npm run typecheck && npm run typecheck:frontend"
+    "typecheck:client": "tsc --project tsconfig.frontend.json --noEmit",
+    "typecheck:all": "npm run typecheck && npm run typecheck:client"
   },
   "keywords": [
     "webhook",
@@ -34,6 +34,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.1.0",
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",

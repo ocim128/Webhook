@@ -14,7 +14,7 @@ import {
   searchQuery, activeFilter, keyboardFocusIndex, setKeyboardFocusIndex,
   setFilteredLogs
 } from './state';
-import type { WebhookLogEntry } from './types';
+import type { WebhookLogEntry, EmailPayload } from './types';
 
 // Forward declarations for circular imports
 let showToast: ((message: string) => void) | null = null;
@@ -27,13 +27,7 @@ let setupEmailDetailActions: ((rawBody: string, email: EmailPayload) => void) | 
 let setupEmailTabs: (() => void) | null = null;
 let setupIframeLoader: (() => void) | null = null;
 
-interface EmailPayload {
-  from?: string;
-  to?: string;
-  subject?: string;
-  htmlBody?: string;
-  plainBody?: string;
-}
+// EmailPayload is imported from './types'
 
 interface LogBadge {
   label: string;

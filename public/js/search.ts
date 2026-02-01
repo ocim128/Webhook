@@ -4,12 +4,13 @@
  */
 
 import { searchInput, searchClear, searchStats, filterChips, slugView, logListEl } from './dom';
+import { debounce } from './utils';
 import {
     logsCache, searchQuery, setSearchQuery, activeFilter, setActiveFilter,
     filteredLogs, setFilteredLogs, keyboardFocusIndex, setKeyboardFocusIndex,
     currentSlug, activeLogId, setActiveLogId, FilterType
 } from './state';
-import type { WebhookLogEntry } from './types';
+import type { WebhookLogEntry, EmailPayload } from './types';
 
 // Forward declarations for circular imports
 let extractEmailPayload: ((log: WebhookLogEntry) => EmailPayload | null) | null = null;
@@ -17,13 +18,7 @@ let renderFilteredLogs: ((logs: WebhookLogEntry[]) => void) | null = null;
 let selectLog: ((logId: string | null) => void) | null = null;
 let updateKeyboardFocus: (() => void) | null = null;
 
-interface EmailPayload {
-    from?: string;
-    to?: string;
-    subject?: string;
-    plainBody?: string;
-    htmlBody?: string;
-}
+// EmailPayload is imported from './types'
 
 // Late-bound references
 let _showToast: ((message: string) => void) | null = null;
@@ -77,17 +72,22 @@ export function initSearch(): void {
 function setupSearch(): void {
     if (!searchInput) return;
 
+    // Debounce the search to avoid excessive filtering while typing
+    const debouncedSearch = debounce(() => {
+        applySearchAndFilter();
+    }, 150);
+
     searchInput.addEventListener('input', (e) => {
         const target = e.target as HTMLInputElement;
         setSearchQuery(target.value.toLowerCase().trim());
-        applySearchAndFilter();
+        debouncedSearch();
     });
 
     searchClear?.addEventListener('click', () => {
         if (!searchInput) return;
         searchInput.value = '';
         setSearchQuery('');
-        applySearchAndFilter();
+        applySearchAndFilter(); // Immediate for clear button
         searchInput.focus();
     });
 }

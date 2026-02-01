@@ -1,0 +1,14 @@
+{
+    "watch": [
+        "src",
+        ".env"
+    ],
+    "ext": "ts,js,json",
+    "ignore": [
+        "public",
+        "data",
+        "dist",
+        "node_modules"
+    ],
+    "exec": "npx ts-node src/server.ts"
+}
